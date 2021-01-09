@@ -248,11 +248,52 @@ private:
 	char commandBuffer[CMD_BUFFER_SIZE];
 
 	char * sendBuffer;
+
+	void clearFIFOFlag();
+	void readFIFO();
+	void flushFIFO();
+	unsigned int readFIFOLength();
+	void setFIFOBurst();
+	unsigned char readFIFOBurst();
+
+	unsigned char readRegister(unsigned char address);
+	void writeRegister(unsigned char address, unsigned char data);
+
+	void setBit(unsigned char address, unsigned char bit);
+	void clearBit(unsigned char address, unsigned char bit);
+	unsigned char getBit(unsigned char address, unsigned char bit);
+
+	unsigned char busWrite(int address, int value);
+	unsigned char busRead(int address);
+
+	unsigned char wrSensorReg8_8(int regID, int regDat);
+	int  wrSensorRegs8_8(const struct sensor_reg*);
+	unsigned char rdSensorReg8_8(unsigned char regID, unsigned char* regDat);
+
+	unsigned char wrSensorReg16_8(int regID, int regDat);
+	int  wrSensorRegs16_8(const struct sensor_reg reglist[]);
+	unsigned char rdSensorReg16_8(unsigned int regID, unsigned char* regDat);
+	int rdSensorRegs16_8(const struct sensor_reg reglist[]);
+
 public:
 	Camera(unsigned int cs);
 	~Camera() = default;
 
 	void init();
+
+	void activate();
+	void deactivate();
+
+	void setImageFormat(IMAGE_TYPE format);
+	void setResolution(RESOLUTION res);
+	void setColorSaturation(COLOR_SATURATION sat);
+	void setBrightness(BRIGHTNESS level);
+	void setSpecialEffect(SPECIAL_EFFECTS effect);
+	void setSharpnessType(SHARPNESS_TYPE sharpness);
+	
+	void resetFirmware();
+	void singleCapture();
+	void startCapture();
 };
 
 #endif
