@@ -44,9 +44,9 @@ enum CHIPID_LEVEL
 
 enum IMAGE_TYPE
 {
-	BMP = 0,
-	JPEG,
-	RAW
+	IMG_BMP = 0,
+	IMG_JPEG,
+	IMG_RAW
 };
 
 enum RESOLUTION
@@ -243,7 +243,8 @@ class Camera
 {
 private:
 	unsigned int csPin;
-	
+	IMAGE_TYPE format;
+
 	char readBuffer[JPEG_BUFFER_SIZE];
 	char commandBuffer[CMD_BUFFER_SIZE];
 

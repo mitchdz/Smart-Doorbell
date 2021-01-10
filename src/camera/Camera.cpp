@@ -27,4 +27,42 @@
  * Plus OV5642 Camera
  */
 
+#include "Camera.h"
 #include "ov5642_regs.h"
+
+Camera::Camera(unsigned int cs)
+{
+	this->csPin = cs;
+	this->format = IMG_JPEG;
+}
+
+void Camera::init()
+{
+	this->wrSensorReg16_8(0x3008, 0x80);
+	this->wrSensorRegs16_8(OV5642_QVGA_Preview);
+
+	if (this->format == IMG_JPEG)
+	{
+		this->wrSensorRegs16_8(OV5642_JPEG_Capture_QSXGA);
+		this->wrSensorRegs16_8(ov5642_320x240);
+		this->wrSensorReg16_8(0x3818, 0xa8);
+		this->wrSensorReg16_8(0x3621, 0x10);
+		this->wrSensorReg16_8(0x3801, 0xb0);
+		this->wrSensorReg16_8(0x4407, 0x04);			
+	}
+	else
+	{
+		unsigned char reg_val;
+		this->wrSensorReg16_8(0x4740, 0x21);
+		this->wrSensorReg16_8(0x501e, 0x2a);
+		this->wrSensorReg16_8(0x5002, 0xf8);
+		this->wrSensorReg16_8(0x501f, 0x01);
+		this->wrSensorReg16_8(0x4300, 0x61);
+		this->rdSensorReg16_8(0x3818, &reg_val);
+		this->wrSensorReg16_8(0x3818, (reg_val | 0x60) & 0xff);
+		this->rdSensorReg16_8(0x3621, &reg_val);
+		this->wrSensorReg16_8(0x3621, reg_val & 0xdf);
+	}
+
+	this->setResolution(RES_320x240);
+}
