@@ -20,9 +20,9 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- * 
+ *
  * RPi4Timer
- * 
+ *
  * This module acts as the driver for Raspberry Pi 4 timers
  */
 
@@ -33,14 +33,13 @@
 
 class RPi4Timer : Timer
 {
-private:
-    volatile unsigned int *sys_timer;
-    volatile unsigned int *arm_timer;
+  private:
+	volatile unsigned int * sys_timer;
+	volatile unsigned int * arm_timer;
 
-public:
-    void init();
-
-    void delay_us(unsigned int micros);
+  public:
+	void init() {}
+	void delay_us(unsigned int micros);
 };
 
 #endif

@@ -20,75 +20,28 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- * 
+ *
  * RPi4Timer
- * 
+ *
  * This module acts as the driver for Raspberry Pi 4 timers
  */
 
-#include <fcntl.h>
-#include <sys/mman.h>
-#include <unistd.h>
+#include <time.h>
 
 #include "RPi4Timer.h"
 #include "RPi4.h"
 
-#ifdef DEBUG
-#include <stdio.h>
-#endif
-
-void RPi4Timer::init()
+unsigned long get_microsecond_timestamp()
 {
-	int  mem_fd;
-	void *reg_map;
+	struct timespec t;
 
-	// /dev/mem is a psuedo-driver for accessing memory in the Linux filesystem
-	if ((mem_fd = open("/dev/mem", O_RDWR|O_SYNC) ) < 0) {
-#ifdef DEBUG
-		printf("can't open /dev/mem \n");
-#endif
-	}
+	if(clock_gettime(CLOCK_MONOTONIC_RAW, &t) != 0) { return 0; }
 
-    reg_map = mmap(
-	  NULL,             //Address at which to start local mapping (null means don't-care)
-      BLOCK_SIZE,       //Size of mapped memory block
-      PROT_READ|PROT_WRITE,// Enable both reading and writing to the mapped memory
-      MAP_SHARED,       // This program does not have exclusive access to this memory
-      mem_fd,           // Map to /dev/mem
-      SYS_TIMER_BASE);       // Offset to Timer peripheral
-
-	if (reg_map == MAP_FAILED) {
-#ifdef DEBUG
-		printf("sys timer mmap error %d\n", (int)reg_map);
-#endif
-		close(mem_fd);
-		return;
-	}
-
-	this->sys_timer = (volatile unsigned *)reg_map;
-
-    reg_map = mmap(
-	  NULL,             //Address at which to start local mapping (null means don't-care)
-      BLOCK_SIZE,       //Size of mapped memory block
-      PROT_READ|PROT_WRITE,// Enable both reading and writing to the mapped memory
-      MAP_SHARED,       // This program does not have exclusive access to this memory
-      mem_fd,           // Map to /dev/mem
-      ARM_TIMER_BASE);       // Offset to interrupts
-
-	if (reg_map == MAP_FAILED) {
-#ifdef DEBUG
-		printf("arm timer mmap error %d\n", (int)reg_map);
-#endif
-		close(mem_fd);
-		return;
-	}
-
-	this->arm_timer = (volatile unsigned *)reg_map;
-	close(mem_fd);
+	return (unsigned long) t.tv_sec * 1000000 + t.tv_nsec / 1000;
 }
 
 void RPi4Timer::delay_us(unsigned int micros)
 {
 	unsigned long nowtime = get_microsecond_timestamp();
-	while((get_microsecond_timestamp() - nowtime)<micros/2);
+	while((get_microsecond_timestamp() - nowtime) < micros / 2) {}
 }
