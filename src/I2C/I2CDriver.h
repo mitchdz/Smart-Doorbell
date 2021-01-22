@@ -20,11 +20,11 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- * 
+ *
  * I2CDriver
- * 
+ *
  * This module acts as a parent class for drivers that control the I2C protocol on
- * specific boards 
+ * specific boards
  */
 
 #ifndef I2CDRIVER_H
@@ -32,7 +32,20 @@
 
 class I2CDriver
 {
+  protected:
+	virtual void SCL_HIGH();
+	virtual void SCL_LOW();
+	virtual void SDA_HIGH();
+	virtual void SDA_LOW();
 
+  public:
+	virtual void		  init();
+	virtual void		  start();
+	virtual void		  stop();
+	virtual void		  sendNACK();
+	virtual void		  sendACK();
+	virtual unsigned char write(unsigned char data);
+	virtual unsigned char read();
 };
 
 #endif
