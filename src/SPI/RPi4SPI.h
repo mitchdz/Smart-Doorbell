@@ -21,21 +21,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  *
- * SPIDriver
+ * RPI4SPI
  *
- * This module acts as a parent class for drivers that control the SPI protocol on
- * specific boards
+ * This module is an SPI protocol driver for the Raspberry Pi 4
  */
 
-#ifndef SPIDRIVER_H
-#define SPIDRIVER_H
+#ifndef RPI4SPI_H
+#define RPI4SPI_H
 
-class SPIDriver
+#include "SPIDriver.h"
+#include "RPi4GPIO.h"
+
+class RPi4SPI : SPIDriver
 {
+  private:
+	RPi4GPIO gpioDriver;
+
   public:
-	virtual void  init(unsigned int frequency, int settings);
-	virtual char  spiTransfer(char toSend);
-	virtual short spiTransfer16(short toSend);
+	void  init(unsigned int frequency, int settings);
+	char  spiTransfer(char toSend);
+	short spiTransfer16(short toSend);
 };
 
 #endif

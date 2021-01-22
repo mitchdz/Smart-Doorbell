@@ -21,21 +21,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  *
- * SPIDriver
+ * RPI4SPI
  *
- * This module acts as a parent class for drivers that control the SPI protocol on
- * specific boards
+ * This module is an SPI protocol driver for the Raspberry Pi 4
  */
 
-#ifndef SPIDRIVER_H
-#define SPIDRIVER_H
+#include "RPi4SPI.h"
+#include "RPi4.h"
 
-class SPIDriver
+void RPi4SPI::init(unsigned int frequency, int settings)
 {
-  public:
-	virtual void  init(unsigned int frequency, int settings);
-	virtual char  spiTransfer(char toSend);
-	virtual short spiTransfer16(short toSend);
-};
+	this->gpioDriver.init();
+	SPI0CSbits.TA = 0;
+	this->gpioDriver.pinMode(9, GPIO_ALT0);
+	this->gpioDriver.pinMode(10, GPIO_ALT0);
+	this->gpioDriver.pinMode(11, GPIO_ALT0);
 
-#endif
+	SPI0CLK			 = 250000000 / frequency;
+	SPI0CS			 = settings;
+	SPI0CSbits.CLEAR = 3;
+	SPI0CSbits.TA	 = 1;
+}
+
+char RPi4SPI::spiTransfer(char toSend)
+{
+	SPI0FIFO = toSend;
+	while(!SPI0CSbits.DONE) {}
+	return SPI0FIFO;
+}
+
+short RPi4SPI::spiTransfer16(short toSend)
+{
+	short rec;
+	SPI0CSbits.TA = 1;
+	rec			  = this->spiTransfer((toSend & 0xFF00) >> 8);	  // send data MSB first
+	rec			  = (rec << 8) | this->spiTransfer(toSend & 0xFF);
+	SPI0CSbits.TA = 0;	  // turn off SPI
+	return rec;
+}
