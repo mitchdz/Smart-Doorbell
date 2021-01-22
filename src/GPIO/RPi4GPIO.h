@@ -20,9 +20,9 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- * 
+ *
  * RPi4GPIO
- * 
+ *
  * This module acts as a driver for Raspberry Pi 4 GPIO pins
  */
 
@@ -33,19 +33,18 @@
 
 class RPi4GPIO : GPIODriver
 {
-private:
-    volatile unsigned int *gpio;
-    int irq1 = 0;
-    int irq2 = 0;
-    int irqbasic = 0;
+  private:
+	int irq1	 = 0;
+	int irq2	 = 0;
+	int irqbasic = 0;
 
-public:
-    void init();
-    void noInterrupts();
-    void interrupts();
-    void pinMode(PIN pin, unsigned int mode);
-    void digitalWrite(PIN pin, int val);
-    int digitalRead(PIN pin);
+  public:
+	void init() {}
+	void noInterrupts();
+	void interrupts();
+	void pinMode(PIN pin, unsigned int mode);
+	void digitalWrite(PIN pin, int val);
+	int	 digitalRead(PIN pin);
 };
 
 #endif
