@@ -18,13 +18,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-BOARD ?= RPI4
+SHELL := /bin/bash
+BOARD ?= RPi4
 DEBUG ?= false
 
 .PHONY:all
 all:build/smart-doorbell
 
 build/smart-doorbell:
+
+build/timer.o:src/timer/ build/$(BOARD).o
+	gcc -c src/timer/$(BOARD)Timer.cpp -Lbuild/$(BOARD).o -o build/timer.o
+
+build/$(BOARD).o:src/board/
+	mkdir -p build/
+	gcc -c src/board/$(BOARD).cpp -o build/$(BOARD).o
+
 
 .PHONY:clean
 clean:
