@@ -21,48 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  * 
- * GPIODriver
+ * RPi4GPIO
  * 
- * This module acts as a parent class for drivers that control GPIO signals on
- * specific boards.
+ * This module acts as a driver for Raspberry Pi 4 GPIO pins
  */
 
-#ifndef GPIODRIVER_H
-#define GPIODRIVER_H
+#ifndef RPI4GPIO_H
+#define RPI4GPIO_H
 
-enum GPIO_SETUP
+#include "GPIODriver.h"
+
+class RPi4GPIO : GPIODriver
 {
-    GPIO_INPUT = 0,
-    GPIO_OUTPUT = 1,
-    GPIO_ALT0 = 4,
-    GPIO_ALT1 = 5,
-    GPIO_ALT2 = 6,
-    GPIO_ALT3 = 7,
-    GPIO_ALT4 = 3,
-    GPIO_ALT5 = 2
-};
+private:
+    volatile unsigned int *gpio;
+    int irq1 = 0;
+    int irq2 = 0;
+    int irqbasic = 0;
 
-enum GPIO_LEVEL
-{
-    GPIO_LOW = 0,
-    GPIO_HIGH
-};
-
-typedef int PIN;
-
-class GPIODriver
-{
 public:
-    virtual void init();
-    virtual void noInterrupts();
-    virtual void interrupts();
-    virtual void pinMode(PIN pin, unsigned int mode);
-    virtual void digitalWrite(PIN pin, int val);
-    virtual int digitalRead(PIN pin);
-
-    void pinsMode(PIN pins[], unsigned int numPins, int mode);
-    void digitalWrites(PIN pins[], unsigned int numPins, int val);
-    int digitalReads(PIN pins[], unsigned int numPins);
+    void init();
+    void noInterrupts();
+    void interrupts();
+    void pinMode(PIN pin, unsigned int mode);
+    void digitalWrite(PIN pin, int val);
+    int digitalRead(PIN pin);
 };
 
 #endif

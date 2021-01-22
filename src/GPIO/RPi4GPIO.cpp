@@ -20,49 +20,61 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- * 
- * GPIODriver
- * 
- * This module acts as a parent class for drivers that control GPIO signals on
- * specific boards.
+ *
+ * RPi4GPIO
+ *
+ * This module acts as a driver for Raspberry Pi 4 GPIO pins
  */
 
-#ifndef GPIODRIVER_H
-#define GPIODRIVER_H
+#include "RPi4GPIO.h"
+#include "RPi4.h"
 
-enum GPIO_SETUP
+void RPi4GPIO::noInterrupts()
 {
-    GPIO_INPUT = 0,
-    GPIO_OUTPUT = 1,
-    GPIO_ALT0 = 4,
-    GPIO_ALT1 = 5,
-    GPIO_ALT2 = 6,
-    GPIO_ALT3 = 7,
-    GPIO_ALT4 = 3,
-    GPIO_ALT5 = 2
-};
+	// save current interrupts
+	irq1	 = IRQ_ENABLE1;
+	irq2	 = IRQ_ENABLE2;
+	irqbasic = IRQ_ENABLE_BASIC;
 
-enum GPIO_LEVEL
+	// disable interrupts
+	IRQ_DISABLE1	  = irq1;
+	IRQ_DISABLE2	  = irq2;
+	IRQ_DISABLE_BASIC = irqbasic;
+}
+
+void RPi4GPIO::interrupts()
 {
-    GPIO_LOW = 0,
-    GPIO_HIGH
-};
+	if(IRQ_ENABLE1 == 0)
+	{
+		IRQ_ENABLE1		 = irq1;
+		IRQ_ENABLE2		 = irq2;
+		IRQ_ENABLE_BASIC = irqbasic;
+	}
+}
 
-typedef int PIN;
-
-class GPIODriver
+void RPi4GPIO::pinMode(PIN pin, unsigned int mode)
 {
-public:
-    virtual void init();
-    virtual void noInterrupts();
-    virtual void interrupts();
-    virtual void pinMode(PIN pin, unsigned int mode);
-    virtual void digitalWrite(PIN pin, int val);
-    virtual int digitalRead(PIN pin);
+	int reg	   = pin / 10;
+	int offset = (pin % 10) * 3;
+	GPFSEL[reg] &= ~((0b111 & ~mode) << offset);
+	GPFSEL[reg] |= ((0b111 & mode) << offset);
+}
 
-    void pinsMode(PIN pins[], unsigned int numPins, int mode);
-    void digitalWrites(PIN pins[], unsigned int numPins, int val);
-    int digitalReads(PIN pins[], unsigned int numPins);
-};
+void RPi4GPIO::digitalWrite(PIN pin, int val)
+{
+	int reg	   = pin / 32;
+	int offset = pin % 32;
 
-#endif
+	if(val)
+		GPSET[reg] = 1 << offset;
+	else
+		GPCLR[reg] = 1 << offset;
+}
+
+int RPi4GPIO::digitalRead(PIN pin)
+{
+	int reg	   = pin / 32;
+	int offset = pin % 32;
+
+	return (GPLEV[reg] >> offset) & 0x00000001;
+}
