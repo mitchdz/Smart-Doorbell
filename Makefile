@@ -19,22 +19,26 @@
 # SOFTWARE.
 
 SHELL := /bin/bash
+
+LIBARGS ?= -c -fpic
+CXXFLAGS ?= -Wall -Werror
+
+OUTDIR ?= build
+
 BOARD ?= RPi4
 DEBUG ?= false
 
 .PHONY:all
-all:build/smart-doorbell
+all:$(OUTDIR)/smart-doorbell
 
-build/smart-doorbell:
+$(OUTDIR)/smart-doorbell:$(OUTDIR)/libCamera.so
 
-build/timer.o:src/timer/ build/$(BOARD).o
-	gcc -c src/timer/$(BOARD)Timer.cpp -Lbuild/$(BOARD).o -o build/timer.o
-
-build/$(BOARD).o:src/board/
-	mkdir -p build/
-	gcc -c src/board/$(BOARD).cpp -o build/$(BOARD).o
+$(OUTDIR)/libCamera.so:src/board src/camera src/GPIO src/I2C src/SPI src/timer
+	mkdir -p $(OUTDIR)/
+	$(CXX) $(LIBARGS) $(CXXFLAGS) -D$(BOARD) -Isrc/board/ -Isrc/GPIO -Isrc/I2C -Isrc/SPI -Isrc/timer src/camera/Camera.cpp -o $(OUTDIR)/camera.o
+	gcc -shared -o $@ $(OUTDIR)/camera.o
 
 
 .PHONY:clean
 clean:
-	rm -rf build/
+	rm -rf $(OUTDIR)/
