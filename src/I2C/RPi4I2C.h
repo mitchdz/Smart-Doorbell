@@ -33,7 +33,7 @@
 #include "RPi4GPIO.h"
 #include "RPi4Timer.h"
 
-typedef enum I2CWire
+enum I2CWire
 {
 	SDA = 2,
 	SCL = 3
