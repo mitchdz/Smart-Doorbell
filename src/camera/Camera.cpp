@@ -20,9 +20,9 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- * 
+ *
  * Camera
- * 
+ *
  * This module controls the setup and intake of live video from the ArduCam 5MP
  * Plus OV5642 Camera
  */
@@ -32,7 +32,7 @@
 
 Camera::Camera(unsigned int cs)
 {
-	this->csPin = cs;
+	this->csPin	 = cs;
 	this->format = IMG_JPEG;
 }
 
@@ -41,14 +41,14 @@ void Camera::init()
 	this->wrSensorReg16_8(0x3008, 0x80);
 	this->wrSensorRegs16_8(OV5642_QVGA_Preview);
 
-	if (this->format == IMG_JPEG)
+	if(this->format == IMG_JPEG)
 	{
 		this->wrSensorRegs16_8(OV5642_JPEG_Capture_QSXGA);
 		this->wrSensorRegs16_8(ov5642_320x240);
 		this->wrSensorReg16_8(0x3818, 0xa8);
 		this->wrSensorReg16_8(0x3621, 0x10);
 		this->wrSensorReg16_8(0x3801, 0xb0);
-		this->wrSensorReg16_8(0x4407, 0x04);			
+		this->wrSensorReg16_8(0x4407, 0x04);
 	}
 	else
 	{

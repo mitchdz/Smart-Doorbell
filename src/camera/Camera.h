@@ -20,9 +20,9 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- * 
+ *
  * Camera
- * 
+ *
  * This module controls the setup and intake of live video from the ArduCam 5MP
  * Plus OV5642 Camera
  */
@@ -30,16 +30,28 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#include "SPIDriver.h"
+#include "I2CDriver.h"
+#include "Timer.h"
+
+#ifdef RPi4
+#include "RPi4SPI.h"
+#include "RPi4I2C.h"
+#include "RPi4Timer.h"
+#else
+#error Board input does not exist
+#endif
+
 enum BUFFER_SIZE
 {
-	JPEG_BUFFER_SIZE = 2*1024*1024,
-	CMD_BUFFER_SIZE = 512
+	JPEG_BUFFER_SIZE = 2 * 1024 * 1024,
+	CMD_BUFFER_SIZE	 = 512
 };
 
 enum CHIPID_LEVEL
 {
 	CHIPID_HIGH = 0x300a,
-	CHIPID_LOW = 0x300b
+	CHIPID_LOW	= 0x300b
 };
 
 enum IMAGE_TYPE
@@ -51,13 +63,13 @@ enum IMAGE_TYPE
 
 enum RESOLUTION
 {
-	RES_320x240 = 0,	//320x240
-	RES_640x480,		//640x480
-	RES_1024x768,		//1024x768
-	RES_1280x960,		//1280x960
-	RES_1600x1200,		//1600x1200
-	RES_2048x1536,		//2048x1536
-	RES_2592x1944		//2592x1944
+	RES_320x240 = 0,	// 320x240
+	RES_640x480,		// 640x480
+	RES_1024x768,		// 1024x768
+	RES_1280x960,		// 1280x960
+	RES_1600x1200,		// 1600x1200
+	RES_2048x1536,		// 2048x1536
+	RES_2592x1944		// 2592x1944
 };
 
 enum LIGHT_MODE
@@ -241,42 +253,52 @@ enum FRAMERATE_DETECT
 
 class Camera
 {
-private:
+  private:
 	unsigned int csPin;
-	IMAGE_TYPE format;
+	IMAGE_TYPE	 format;
 
 	char readBuffer[JPEG_BUFFER_SIZE];
 	char commandBuffer[CMD_BUFFER_SIZE];
 
 	char * sendBuffer;
 
-	void clearFIFOFlag();
-	void readFIFO();
-	void flushFIFO();
-	unsigned int readFIFOLength();
-	void setFIFOBurst();
+#ifdef RPi4
+	RPi4SPI	  spiDriver;
+	RPi4I2C	  i2cDriver;
+	RPi4Timer timer;
+#else
+	SPIDriver spiDriver;
+	I2CDriver i2cDriver;
+	Timer	  timer;
+#endif
+
+	void		  clearFIFOFlag();
+	void		  readFIFO();
+	void		  flushFIFO();
+	unsigned int  readFIFOLength();
+	void		  setFIFOBurst();
 	unsigned char readFIFOBurst();
 
 	unsigned char readRegister(unsigned char address);
-	void writeRegister(unsigned char address, unsigned char data);
+	void		  writeRegister(unsigned char address, unsigned char data);
 
-	void setBit(unsigned char address, unsigned char bit);
-	void clearBit(unsigned char address, unsigned char bit);
+	void		  setBit(unsigned char address, unsigned char bit);
+	void		  clearBit(unsigned char address, unsigned char bit);
 	unsigned char getBit(unsigned char address, unsigned char bit);
 
 	unsigned char busWrite(int address, int value);
 	unsigned char busRead(int address);
 
 	unsigned char wrSensorReg8_8(int regID, int regDat);
-	int  wrSensorRegs8_8(const struct sensor_reg*);
-	unsigned char rdSensorReg8_8(unsigned char regID, unsigned char* regDat);
+	int			  wrSensorRegs8_8(const struct sensor_reg *);
+	unsigned char rdSensorReg8_8(unsigned char regID, unsigned char * regDat);
 
 	unsigned char wrSensorReg16_8(int regID, int regDat);
-	int  wrSensorRegs16_8(const struct sensor_reg reglist[]);
-	unsigned char rdSensorReg16_8(unsigned int regID, unsigned char* regDat);
-	int rdSensorRegs16_8(const struct sensor_reg reglist[]);
+	int			  wrSensorRegs16_8(const struct sensor_reg reglist[]);
+	unsigned char rdSensorReg16_8(unsigned int regID, unsigned char * regDat);
+	int			  rdSensorRegs16_8(const struct sensor_reg reglist[]);
 
-public:
+  public:
 	Camera(unsigned int cs);
 	~Camera() = default;
 
@@ -291,7 +313,7 @@ public:
 	void setBrightness(BRIGHTNESS level);
 	void setSpecialEffect(SPECIAL_EFFECTS effect);
 	void setSharpnessType(SHARPNESS_TYPE sharpness);
-	
+
 	void resetFirmware();
 	void singleCapture();
 	void startCapture();
