@@ -29,13 +29,16 @@
 #include "RPi4SPI.h"
 #include "RPi4.h"
 
-void RPi4SPI::init(unsigned int frequency, int settings)
+void RPi4SPI::init(PIN csPin, unsigned int frequency, int settings)
 {
+	this->csPin = csPin;
+
 	this->gpioDriver.init();
 	SPI0CSbits.TA = 0;
 	this->gpioDriver.pinMode(9, GPIO_ALT0);
 	this->gpioDriver.pinMode(10, GPIO_ALT0);
 	this->gpioDriver.pinMode(11, GPIO_ALT0);
+	this->gpioDriver.pinMode(this->csPin, GPIO_OUTPUT);
 
 	SPI0CLK			 = 250000000 / frequency;
 	SPI0CS			 = settings;
@@ -59,3 +62,7 @@ short RPi4SPI::spiTransfer16(short toSend)
 	SPI0CSbits.TA = 0;	  // turn off SPI
 	return rec;
 }
+
+void RPi4SPI::csHigh() { this->gpioDriver.digitalWrite(this->csPin, GPIO_HIGH); }
+
+void RPi4SPI::csLow() { this->gpioDriver.digitalWrite(this->csPin, GPIO_LOW); }

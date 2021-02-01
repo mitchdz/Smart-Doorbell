@@ -36,11 +36,15 @@ class RPi4SPI : SPIDriver
 {
   private:
 	RPi4GPIO gpioDriver;
+	PIN		 csPin;
 
   public:
-	void  init(unsigned int frequency, int settings);
+	void  init(PIN csPin, unsigned int frequency, int settings);
 	char  spiTransfer(char toSend);
 	short spiTransfer16(short toSend);
+
+	void csHigh();
+	void csLow();
 };
 
 #endif

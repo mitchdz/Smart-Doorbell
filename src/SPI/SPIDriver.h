@@ -30,12 +30,17 @@
 #ifndef SPIDRIVER_H
 #define SPIDRIVER_H
 
+#include "GPIODriver.h"
+
 class SPIDriver
 {
   public:
-	virtual void  init(unsigned int frequency, int settings);
+	virtual void  init(PIN csPin, unsigned int frequency, int settings);
 	virtual char  spiTransfer(char toSend);
 	virtual short spiTransfer16(short toSend);
+
+	virtual void csHigh();
+	virtual void csLow();
 };
 
 #endif
