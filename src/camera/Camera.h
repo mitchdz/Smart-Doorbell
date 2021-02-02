@@ -248,7 +248,8 @@ enum FRAMERATE_DETECT
 class Camera
 {
   private:
-	unsigned int csPin;
+	PIN			 csPin;
+	unsigned int currentLength;
 	IMAGE_TYPE	 format;
 
 	char readBuffer[JPEG_BUFFER_SIZE];
@@ -267,11 +268,10 @@ class Camera
 #endif
 
 	void		  clearFIFOFlag();
-	void		  readFIFO();
+	unsigned char readFIFO();
 	void		  flushFIFO();
 	unsigned int  readFIFOLength();
 	void		  setFIFOBurst();
-	unsigned char readFIFOBurst();
 
 	unsigned char readRegister(unsigned char address);
 	void		  writeRegister(unsigned char address, unsigned char data);

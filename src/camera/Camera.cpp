@@ -38,6 +38,10 @@ Camera::Camera(unsigned int cs)
 
 void Camera::init()
 {
+	this->i2cDriver.init();
+	this->spiDriver.init(this->csPin, 0, 0);	// TODO: Add correct vals
+	this->timer.init();
+
 	this->wrSensorReg16_8(0x3008, 0x80);
 	this->wrSensorRegs16_8(OV5642_QVGA_Preview);
 
@@ -67,9 +71,17 @@ void Camera::init()
 	this->setResolution(RES_320x240);
 }
 
-void Camera::activate() {}
+void Camera::activate()
+{
+	this->timer.delay_us(1);
+	this->spiDriver.csLow();
+}
 
-void Camera::deactivate() {}
+void Camera::deactivate()
+{
+	this->timer.delay_us(1);
+	this->spiDriver.csHigh();
+}
 
 void Camera::setImageFormat(IMAGE_TYPE format) { this->format = format; }
 
@@ -304,12 +316,90 @@ void Camera::setSharpnessType(SHARPNESS_TYPE sharpness)
 	}
 }
 
-void Camera::resetFirmware() {}
+void Camera::resetFirmware()
+{
+	this->writeRegister(0x07, 0x80);
+	this->timer.delay_ms(100);
+	this->writeRegister(0x07, 0x00);
+	this->timer.delay_ms(100);
+	this->writeRegister(ARDUCHIP_FRAMES, 0x00);
+	this->setBit(ARDUCHIP_TIM, VSYNC_LEVEL_MASK);
+}
 
 void Camera::singleCapture()
 {
 	this->flushFIFO();
 	this->startCapture();
+
+	while(!this->getBit(ARDUCHIP_TRIG, CAP_DONE_MASK)) {}
+
+	int count			= this->readFIFOLength();
+	this->currentLength = count;
+	int i				= 0;
+
+	this->activate();
+	this->setFIFOBurst();
+
+	while((count--) > 0) { this->readBuffer[i++] = this->spiDriver.spiTransfer(0); }
+
+	this->deactivate();
 }
 
-void Camera::startCapture() {}
+void Camera::startCapture() { this->writeRegister(ARDUCHIP_FIFO, FIFO_START_MASK); }
+
+void Camera::clearFIFOFlag() { this->writeRegister(ARDUCHIP_FIFO, FIFO_CLEAR_MASK); }
+
+unsigned char Camera::readFIFO() { return this->busRead(SINGLE_FIFO_READ); }
+
+void Camera::flushFIFO() { this->writeRegister(ARDUCHIP_FIFO, FIFO_CLEAR_MASK); }
+
+unsigned int Camera::readFIFOLength()
+{
+	return (((this->readRegister(FIFO_SIZE3)) << 16) | ((this->readRegister(FIFO_SIZE2)) << 8) |
+			this->readRegister(FIFO_SIZE1)) &
+		   0x7fffff;
+}
+
+void Camera::setFIFOBurst() { this->spiDriver.spiTransfer(BURST_FIFO_READ); }
+
+unsigned char Camera::readRegister(unsigned char address) { return this->busRead(address & 0x7F); }
+
+void Camera::writeRegister(unsigned char address, unsigned char data)
+{
+	this->busWrite(address | 0x80, data);
+}
+
+void Camera::setBit(unsigned char address, unsigned char bit)
+{
+	unsigned char temp = this->readRegister(address);
+	this->writeRegister(address, temp | bit);
+}
+
+void Camera::clearBit(unsigned char address, unsigned char bit)
+{
+	unsigned char temp = this->readRegister(address);
+	this->writeRegister(address, temp & (~bit));
+}
+
+unsigned char Camera::getBit(unsigned char address, unsigned char bit)
+{
+	return this->readRegister(address) & bit;
+}
+
+unsigned char Camera::busWrite(int address, int value)
+{
+	this->activate();
+	this->spiDriver.spiTransfer(address);
+	this->spiDriver.spiTransfer(value);
+	this->deactivate();
+	return 1;
+}
+
+unsigned char Camera::busRead(int address)
+{
+	this->activate();
+	this->spiDriver.spiTransfer(address);
+	unsigned char val = this->spiDriver.spiTransfer(0x00);
+	this->deactivate();
+	return val;
+}
