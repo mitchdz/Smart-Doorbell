@@ -31,7 +31,7 @@
 
 #include "Timer.h"
 
-class RPi4Timer : Timer
+class RPi4Timer : public Timer
 {
   private:
 	volatile unsigned int * sys_timer;

@@ -39,7 +39,7 @@ enum I2CWire
 	SCL = 3
 };
 
-class RPi4I2C : I2CDriver
+class RPi4I2C : public I2CDriver
 {
   private:
 	const unsigned int pauseTime = 30;

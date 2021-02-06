@@ -31,7 +31,7 @@
 
 #include "GPIODriver.h"
 
-class RPi4GPIO : GPIODriver
+class RPi4GPIO : public GPIODriver
 {
   private:
 	int irq1	 = 0;

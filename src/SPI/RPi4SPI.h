@@ -32,7 +32,7 @@
 #include "SPIDriver.h"
 #include "RPi4GPIO.h"
 
-class RPi4SPI : SPIDriver
+class RPi4SPI : public SPIDriver
 {
   private:
 	RPi4GPIO gpioDriver;
