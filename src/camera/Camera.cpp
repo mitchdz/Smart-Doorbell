@@ -403,3 +403,227 @@ unsigned char Camera::busRead(int address)
 	this->deactivate();
 	return val;
 }
+
+unsigned char Camera::wrSensorReg8_8(int regID, int regDat)
+{
+	this->timer.delay_us(10);
+	this->i2cDriver.start();
+
+	if(this->i2cDriver.write(this->sensorAddress) == 0)
+	{
+		this->i2cDriver.stop();
+		return 1;
+	}
+
+	this->timer.delay_us(10);
+
+	if(this->i2cDriver.write(regID) == 0)
+	{
+		this->i2cDriver.stop();
+		return 2;
+	}
+
+	this->timer.delay_us(10);
+
+	if(this->i2cDriver.write(regDat) == 0)
+	{
+		this->i2cDriver.stop();
+		return 3;
+	}
+
+	this->i2cDriver.stop();
+	return 0;
+}
+
+int Camera::wrSensorRegs8_8(const struct sensor_reg * reglist)
+{
+	int			 err		= 0;
+	unsigned int regAddress = 0;
+	unsigned int regValue	= 0;
+
+	const struct sensor_reg * next = reglist;
+
+	while((regAddress != 0xff) | (regValue != 0xff))
+	{
+		regAddress = next->reg;
+		regValue   = next->val;
+		err |= this->wrSensorReg8_8(regAddress, regValue);
+
+		this->timer.delay_ms(10);
+
+		next++;
+	}
+
+	return err;
+}
+
+unsigned char Camera::rdSensorReg8_8(unsigned char regID, unsigned char * regDat)
+{
+	this->timer.delay_us(10);
+
+	this->i2cDriver.start();
+
+	if(this->i2cDriver.write(this->sensorAddress) == 0)
+	{
+		this->i2cDriver.stop();
+		return 1;
+	}
+
+	this->timer.delay_us(10);
+
+	if(this->i2cDriver.write(regID) == 0)
+	{
+		this->i2cDriver.stop();
+		return 2;
+	}
+
+	this->i2cDriver.stop();
+	this->timer.delay_us(10);
+	this->i2cDriver.start();
+
+	if(this->i2cDriver.write(this->sensorAddress | 0x01) == 0)
+	{
+		this->i2cDriver.stop();
+		return 3;
+	}
+
+	this->timer.delay_us(10);
+
+	*regDat = this->i2cDriver.read();
+
+	this->i2cDriver.sendNACK();
+	this->i2cDriver.stop();
+	return 0;
+}
+
+unsigned char Camera::wrSensorReg16_8(int regID, int regDat)
+{
+	this->timer.delay_us(10);
+	this->i2cDriver.start();
+
+	if(this->i2cDriver.write(this->sensorAddress) == 0)
+	{
+		this->i2cDriver.stop();
+		return 0;
+	}
+
+	this->timer.delay_us(10);
+
+	if(this->i2cDriver.write(regID >> 8) == 0)
+	{
+		this->i2cDriver.stop();
+		return 0;
+	}
+
+	this->timer.delay_us(10);
+
+	if(this->i2cDriver.write(regID) == 0)
+	{
+		this->i2cDriver.stop();
+		return 0;
+	}
+
+	this->timer.delay_us(10);
+
+	if(this->i2cDriver.write(regDat) == 0)
+	{
+		this->i2cDriver.stop();
+		return 0;
+	}
+
+	this->i2cDriver.stop();
+	return 1;
+}
+
+int Camera::wrSensorRegs16_8(const struct sensor_reg reglist[])
+{
+	int			 err		= 1;
+	unsigned int regAddress = 0;
+	unsigned int regValue	= 0;
+
+	const struct sensor_reg * next = reglist;
+
+	while((regAddress != 0xffff) | (regValue != 0xff))
+	{
+		regAddress = next->reg;
+		regValue   = next->val;
+		err &= this->wrSensorReg16_8(regAddress, regValue);
+
+		this->timer.delay_ms(10);
+
+		next++;
+	}
+
+	return err;
+}
+
+unsigned char Camera::rdSensorReg16_8(unsigned int regID, unsigned char * regDat)
+{
+	this->timer.delay_us(10);
+
+	this->i2cDriver.start();
+
+	if(this->i2cDriver.write(this->sensorAddress) == 0)
+	{
+		this->i2cDriver.stop();
+		return 0;
+	}
+
+	this->timer.delay_us(40);
+
+	if(this->i2cDriver.write(regID >> 8) == 0)
+	{
+		this->i2cDriver.stop();
+		return 0;
+	}
+
+	this->timer.delay_us(20);
+
+	if(this->i2cDriver.write(regID) == 0)
+	{
+		this->i2cDriver.stop();
+		return 0;
+	}
+
+	this->timer.delay_us(20);
+	this->i2cDriver.stop();
+	this->timer.delay_us(20);
+	this->i2cDriver.start();
+
+	if(this->i2cDriver.write(this->sensorAddress | 0x01) == 0)
+	{
+		this->i2cDriver.stop();
+		return 0;
+	}
+
+	this->timer.delay_us(20);
+
+	*regDat = this->i2cDriver.read();
+
+	this->i2cDriver.sendNACK();
+	this->i2cDriver.stop();
+	return 1;
+}
+
+int Camera::rdSensorRegs16_8(const struct sensor_reg reglist[])
+{
+	int			  err = 1;
+	unsigned char testVal;
+	unsigned int  regAddress = 0;
+	unsigned int  regValue	 = 0;
+
+	const struct sensor_reg * next = reglist;
+
+	while((regAddress != 0xffff) | (regValue != 0xff))
+	{
+		regAddress = next->reg;
+		regValue   = next->val;
+		err &= this->rdSensorReg16_8(regAddress, &testVal);
+
+		this->timer.delay_ms(10);
+
+		next++;
+	}
+
+	return err;
+}

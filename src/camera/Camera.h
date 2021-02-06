@@ -267,6 +267,8 @@ class Camera
 	Timer	  timer;
 #endif
 
+	unsigned char sensorAddress = 0;
+
 	void		  clearFIFOFlag();
 	unsigned char readFIFO();
 	void		  flushFIFO();
