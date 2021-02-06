@@ -31,9 +31,12 @@ DEBUG ?= false
 .PHONY:all
 all:$(OUTDIR)/smart-doorbell
 
+# Smart Doorbell CLI app creation
 $(OUTDIR)/smart-doorbell:$(OUTDIR)/libCamera.so $(OUTDIR)/include/Camera.h
 	$(CXX) $(CXXFLAGS) -D$(BOARD) -I$(OUTDIR)/include -L$(OUTDIR) -lCamera -lBoard -lTimer -lGPIO -lI2C -lSPI -I$(OUTDIR)/include -o $@ src/main/SmartDoorbellCLI.cpp
 
+
+# ArduCAM Library
 $(OUTDIR)/libCamera.so:$(OUTDIR)/libTimer.so $(OUTDIR)/include/$(BOARD)Timer.h $(OUTDIR)/libGPIO.so $(OUTDIR)/include/$(BOARD)GPIO.h $(OUTDIR)/libI2C.so $(OUTDIR)/include/$(BOARD)I2C.h $(OUTDIR)/libSPI.so $(OUTDIR)/include/$(BOARD)SPI.h src/camera
 	$(CXX) $(LIBARGS) $(CXXFLAGS) -D$(BOARD) -L$(OUTDIR) -lBoard -lTimer -lGPIO -lI2C -lSPI -I$(OUTDIR)/include src/camera/Camera.cpp -o $(OUTDIR)/camera.o
 	$(CXX) -shared -o $@ $(OUTDIR)/camera.o

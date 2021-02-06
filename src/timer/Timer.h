@@ -20,9 +20,9 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- * 
+ *
  * Timer
- * 
+ *
  * This module acts as the parent class for board timers
  */
 
@@ -31,12 +31,15 @@
 
 class Timer
 {
-public:
-    virtual void init();
-    virtual void delay_us(unsigned int micros);
-    void delay_ms(unsigned int millis);
+  public:
+	virtual void init();
+	virtual void delay_us(unsigned int micros);
+	void		 delay_ms(unsigned int millis);
 };
 
 inline void Timer::delay_ms(unsigned int millis) { this->delay_us(millis * 1000); };
+
+inline void Timer::init() {}
+inline void Timer::delay_us(unsigned int micros) {}
 
 #endif

@@ -43,4 +43,10 @@ class SPIDriver
 	virtual void csLow();
 };
 
+inline void	 SPIDriver::init(PIN csPin, unsigned int frequency, int settings) {}
+inline char	 SPIDriver::spiTransfer(char toSend) { return 0; }
+inline short SPIDriver::spiTransfer16(short toSend) { return 0; }
+inline void	 SPIDriver::csHigh() {}
+inline void	 SPIDriver::csLow() {}
+
 #endif

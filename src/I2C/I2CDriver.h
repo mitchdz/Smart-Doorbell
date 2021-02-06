@@ -48,4 +48,16 @@ class I2CDriver
 	virtual unsigned char read();
 };
 
+inline void			 I2CDriver::SCL_HIGH() {}
+inline void			 I2CDriver::SCL_LOW() {}
+inline void			 I2CDriver::SDA_HIGH() {}
+inline void			 I2CDriver::SDA_LOW() {}
+inline void			 I2CDriver::init() {}
+inline void			 I2CDriver::start() {}
+inline void			 I2CDriver::stop() {}
+inline void			 I2CDriver::sendNACK() {}
+inline void			 I2CDriver::sendACK() {}
+inline unsigned char I2CDriver::write(unsigned char data) { return 0; }
+inline unsigned char I2CDriver::read() { return 0; }
+
 #endif
