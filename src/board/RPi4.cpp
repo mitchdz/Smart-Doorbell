@@ -37,7 +37,7 @@
 
 #include "RPi4.h"
 
-void RPi4::boardInit()
+void RPi4Board::boardInit()
 {
 	int	   mem_fd;
 	void * reg_map;

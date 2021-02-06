@@ -645,7 +645,7 @@ typedef struct
 #define CM_PWMDIVbits (*(volatile cm_pwmdivbits *) (cm_pwm + 41))
 #define CM_PWMDIV	  (*(volatile unsigned int *) (cm_pwm + 41))
 
-class RPi4
+class RPi4Board
 {
   public:
 	static void boardInit();
