@@ -31,13 +31,63 @@ DEBUG ?= false
 .PHONY:all
 all:$(OUTDIR)/smart-doorbell
 
-$(OUTDIR)/smart-doorbell:$(OUTDIR)/libCamera.so
+$(OUTDIR)/smart-doorbell:$(OUTDIR)/libCamera.so $(OUTDIR)/include/Camera.h
+	$(CXX) $(CXXFLAGS) -D$(BOARD) -I$(OUTDIR)/include -L$(OUTDIR) -lCamera -lBoard -lTimer -lGPIO -lI2C -lSPI -I$(OUTDIR)/include -o $@ src/main/SmartDoorbellCLI.cpp
 
-$(OUTDIR)/libCamera.so:src/board src/camera src/GPIO src/I2C src/SPI src/timer
+$(OUTDIR)/libCamera.so:$(OUTDIR)/libTimer.so $(OUTDIR)/include/$(BOARD)Timer.h $(OUTDIR)/libGPIO.so $(OUTDIR)/include/$(BOARD)GPIO.h $(OUTDIR)/libI2C.so $(OUTDIR)/include/$(BOARD)I2C.h $(OUTDIR)/libSPI.so $(OUTDIR)/include/$(BOARD)SPI.h src/camera
+	$(CXX) $(LIBARGS) $(CXXFLAGS) -D$(BOARD) -L$(OUTDIR) -lBoard -lTimer -lGPIO -lI2C -lSPI -I$(OUTDIR)/include src/camera/Camera.cpp -o $(OUTDIR)/camera.o
+	$(CXX) -shared -o $@ $(OUTDIR)/camera.o
+
+$(OUTDIR)/include/Camera.h:src/camera
+	cp src/camera/ArduCAM.h $(OUTDIR)/include/
+	cp src/camera/Camera.h $(OUTDIR)/include/
+	cp src/camera/ov5642_regs.h $(OUTDIR)/include/
+
+# SPI Library
+$(OUTDIR)/libSPI.so:$(OUTDIR)/libBoard.so $(OUTDIR)/include/$(BOARD).h $(OUTDIR)/libGPIO.so $(OUTDIR)/include/$(BOARD)GPIO.h src/SPI
+	$(CXX) $(LIBARGS) $(CXXFLAGS) -D$(BOARD) -L$(OUTDIR) -lBoard -lGPIO -I$(OUTDIR)/include src/SPI/$(BOARD)SPI.cpp -o $(OUTDIR)/SPI.o
+	$(CXX) -shared -o $@ $(OUTDIR)/SPI.o
+
+$(OUTDIR)/include/$(BOARD)SPI.h:src/SPI
+	cp src/SPI/$(BOARD)SPI.h $(OUTDIR)/include/
+	cp src/SPI/SPIDriver.h $(OUTDIR)/include/
+
+# I2C Library
+$(OUTDIR)/libI2C.so:$(OUTDIR)/libBoard.so $(OUTDIR)/include/$(BOARD).h $(OUTDIR)/libTimer.so $(OUTDIR)/include/$(BOARD)Timer.h $(OUTDIR)/libGPIO.so $(OUTDIR)/include/$(BOARD)GPIO.h src/I2C
+	$(CXX) $(LIBARGS) $(CXXFLAGS) -D$(BOARD) -L$(OUTDIR) -lBoard -lTimer -lGPIO -I$(OUTDIR)/include src/I2C/$(BOARD)I2C.cpp -o $(OUTDIR)/I2C.o
+	$(CXX) -shared -o $@ $(OUTDIR)/I2C.o
+
+$(OUTDIR)/include/$(BOARD)I2C.h:src/I2C
+	cp src/I2C/$(BOARD)I2C.h $(OUTDIR)/include/
+	cp src/I2C/I2CDriver.h $(OUTDIR)/include/
+
+# GPIO Library
+$(OUTDIR)/libGPIO.so:$(OUTDIR)/libBoard.so $(OUTDIR)/include/$(BOARD).h src/GPIO
+	$(CXX) $(LIBARGS) $(CXXFLAGS) -D$(BOARD) -L$(OUTDIR) -lBoard -I$(OUTDIR)/include src/GPIO/$(BOARD)GPIO.cpp -o $(OUTDIR)/GPIO.o
+	$(CXX) -shared -o $@ $(OUTDIR)/GPIO.o
+
+$(OUTDIR)/include/$(BOARD)GPIO.h:src/GPIO
+	cp src/GPIO/$(BOARD)GPIO.h $(OUTDIR)/include/
+	cp src/GPIO/GPIODriver.h $(OUTDIR)/include/
+
+# Timer Library
+$(OUTDIR)/libTimer.so:$(OUTDIR)/libBoard.so $(OUTDIR)/include/$(BOARD).h src/timer
+	$(CXX) $(LIBARGS) $(CXXFLAGS) -D$(BOARD) -L$(OUTDIR) -lBoard -I$(OUTDIR)/include src/timer/$(BOARD)Timer.cpp -o $(OUTDIR)/timer.o
+	$(CXX) -shared -o $@ $(OUTDIR)/timer.o
+
+$(OUTDIR)/include/$(BOARD)Timer.h:src/timer
+	cp src/timer/$(BOARD)Timer.h $(OUTDIR)/include/
+	cp src/timer/Timer.h $(OUTDIR)/include/
+
+# Board Definitions Library
+$(OUTDIR)/libBoard.so:src/board
 	mkdir -p $(OUTDIR)/
-	$(CXX) $(LIBARGS) $(CXXFLAGS) -D$(BOARD) -Isrc/board/ -Isrc/GPIO -Isrc/I2C -Isrc/SPI -Isrc/timer src/camera/Camera.cpp -o $(OUTDIR)/camera.o
-	gcc -shared -o $@ $(OUTDIR)/camera.o
+	$(CXX) $(LIBARGS) $(CXXFLAGS) -D$(BOARD) src/board/$(BOARD).cpp -o $(OUTDIR)/board.o
+	$(CXX) -shared -o $@ $(OUTDIR)/board.o
 
+$(OUTDIR)/include/$(BOARD).h:src/board
+	mkdir -p $(OUTDIR)/include
+	cp src/board/$(BOARD).h $(OUTDIR)/include/
 
 .PHONY:clean
 clean:
