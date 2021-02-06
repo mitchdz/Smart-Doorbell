@@ -30,6 +30,10 @@
 #include "Camera.h"
 #include "ov5642_regs.h"
 
+#ifdef DEBUG
+#include <stdio.h>
+#endif
+
 Camera::Camera(unsigned int cs)
 {
 	this->csPin	 = cs;
@@ -41,6 +45,51 @@ void Camera::init()
 	this->i2cDriver.init();
 	this->spiDriver.init(this->csPin, 0, 0);	// TODO: Add correct vals
 	this->timer.init();
+
+	while(1)
+	{
+		this->writeRegister(ARDUCHIP_TEST1, 0x55);
+		unsigned char temp = this->readRegister(ARDUCHIP_TEST1);
+
+		if(temp != 0x55)
+		{
+#ifdef DEBUG
+			printf("SPI interface Error!\n");
+#endif
+			this->timer.delay_ms(1000);
+			continue;
+		}
+		else
+		{
+#ifdef DEBUG
+			printf("SPI interface OK!\n");
+#endif
+			break;
+		}
+	}
+
+	unsigned char pid = 0, vid = 0;
+	this->sensorAddress = 0x78;
+
+	while(1)
+	{
+		this->rdSensorReg16_8(OV5642_CHIPID_HIGH, &vid);
+		this->rdSensorReg16_8(OV5642_CHIPID_LOW, &pid);
+		if((vid != 0x56) || (pid != 0x42))
+		{
+#ifdef DEBUG
+			printf("Cannot find OV5642 module!\n");
+#endif
+			continue;
+		}
+		else
+		{
+#ifdef DEBUG
+			printf("OV5642 detected.\r\n");
+#endif
+			break;
+		}
+	}
 
 	this->wrSensorReg16_8(0x3008, 0x80);
 	this->wrSensorRegs16_8(OV5642_QVGA_Preview);
