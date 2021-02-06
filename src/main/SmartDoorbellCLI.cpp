@@ -27,11 +27,21 @@
  * Doorbell application
  */
 
+#ifdef RPi4
+#include "RPi4.h"
+#else
+#error Board input does not exist
+#endif
+
 #include <stdio.h>
 #include <Camera.h>
 
 int main(int argc, char * argv[])
 {
+#ifdef RPi4
+	RPi4Board::boardInit();
+#endif
+
 	Camera camera;
 	camera.init();
 }
