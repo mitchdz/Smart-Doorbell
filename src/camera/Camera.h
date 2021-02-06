@@ -296,6 +296,7 @@ class Camera
 
   public:
 	Camera(unsigned int cs);
+	Camera();
 	~Camera() = default;
 
 	void init();

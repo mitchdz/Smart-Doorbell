@@ -34,6 +34,12 @@
 #include <stdio.h>
 #endif
 
+Camera::Camera()
+{
+	this->csPin	 = 21;
+	this->format = IMG_JPEG;
+}
+
 Camera::Camera(unsigned int cs)
 {
 	this->csPin	 = cs;
