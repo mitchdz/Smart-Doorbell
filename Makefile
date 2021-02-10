@@ -18,6 +18,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+# PREFIX is environment variable, but if it is not set, then set default value
+ifeq ($(PREFIX),)
+    PREFIX := /usr/local
+endif
+
 SHELL := /bin/bash
 
 LIBARGS ?= -c -fpic
@@ -91,6 +96,25 @@ $(OUTDIR)/libBoard.so:src/board
 $(OUTDIR)/include/$(BOARD).h:src/board
 	mkdir -p $(OUTDIR)/include
 	cp src/board/$(BOARD).h $(OUTDIR)/include/
+
+.PHONY:install
+install:
+	install -d $(DESTDIR)$(PREFIX)/lib/
+	install -m 644 $(OUTDIR)/libCamera.so $(DESTDIR)$(PREFIX)/lib/
+	install -m 644 $(OUTDIR)/libSPI.so $(DESTDIR)$(PREFIX)/lib/
+	install -m 644 $(OUTDIR)/libI2C.so $(DESTDIR)$(PREFIX)/lib/
+	install -m 644 $(OUTDIR)/libGPIO.so $(DESTDIR)$(PREFIX)/lib/
+	install -m 644 $(OUTDIR)/libTimer.so $(DESTDIR)$(PREFIX)/lib/
+	install -m 644 $(OUTDIR)/libBoard.so $(DESTDIR)$(PREFIX)/lib/
+	install -d $(DESTDIR)$(PREFIX)/include/
+	install -m 644 $(OUTDIR)/include/$(BOARD).h $(DESTDIR)$(PREFIX)/include/
+	install -m 644 $(OUTDIR)/include/$(BOARD)SPI.h $(DESTDIR)$(PREFIX)/include/
+	install -m 644 $(OUTDIR)/include/Camera.h $(DESTDIR)$(PREFIX)/include/
+	install -m 644 $(OUTDIR)/include/$(BOARD)I2C.h $(DESTDIR)$(PREFIX)/include/
+	install -m 644 $(OUTDIR)/include/$(BOARD)GPIO.h $(DESTDIR)$(PREFIX)/include/
+	install -m 644 $(OUTDIR)/include/$(BOARD)Timer.h $(DESTDIR)$(PREFIX)/include/
+	install -d $(DESTDIR)$(PREFIX)/bin/
+	install -m 644 $(OUTDIR)/smart-doorbell $(DESTDIR)$(PREFIX)/bin/
 
 .PHONY:clean
 clean:
