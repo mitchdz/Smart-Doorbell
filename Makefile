@@ -20,7 +20,7 @@
 
 # PREFIX is environment variable, but if it is not set, then set default value
 ifeq ($(PREFIX),)
-    PREFIX := /usr/local
+    PREFIX := /usr
 endif
 
 SHELL := /bin/bash
