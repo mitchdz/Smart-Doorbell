@@ -36,8 +36,13 @@ DEBUG ?= false
 .PHONY:all
 all:$(OUTDIR)/smart-doorbell
 
+.PHONY:create_dirs
+create_dirs:
+	mkdir -p $(OUTDIR)
+	mkdir -p $(OUTDIR)/include
+
 # Smart Doorbell CLI app creation
-$(OUTDIR)/smart-doorbell:$(OUTDIR)/libCamera.so $(OUTDIR)/include/Camera.h
+$(OUTDIR)/smart-doorbell:$(OUTDIR)/libCamera.so $(OUTDIR)/include/Camera.h create_dirs
 	$(CXX) $(CXXFLAGS) -D$(BOARD) -I$(OUTDIR)/include -L$(OUTDIR) -lCamera -lBoard -lTimer -lGPIO -lI2C -lSPI -I$(OUTDIR)/include -o $@ src/main/SmartDoorbellCLI.cpp
 
 
@@ -89,12 +94,10 @@ $(OUTDIR)/include/$(BOARD)Timer.h:src/timer
 
 # Board Definitions Library
 $(OUTDIR)/libBoard.so:src/board
-	mkdir -p $(OUTDIR)/
 	$(CXX) $(LIBARGS) $(CXXFLAGS) -D$(BOARD) src/board/$(BOARD).cpp -o $(OUTDIR)/board.o
 	$(CXX) -shared -o $@ $(OUTDIR)/board.o
 
 $(OUTDIR)/include/$(BOARD).h:src/board
-	mkdir -p $(OUTDIR)/include
 	cp src/board/$(BOARD).h $(OUTDIR)/include/
 
 .PHONY:install
