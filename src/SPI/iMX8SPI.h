@@ -21,35 +21,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  *
- * SmartDoorbellCLI
+ * iMX8SPI
  *
- * This file contains the main entry and setup for the CLI version of the Smart
- * Doorbell application
+ * This module is an SPI protocol driver for i.MX 8 boards
  */
 
-#ifdef RPi4
-#include "RPi4.h"
-#else
-#ifdef iMX8
-#include "iMX8.h"
-#else
-#error Board input does not exist
-#endif
-#endif
+#ifndef iMX8SPI_H
+#define iMX8SPI_H
 
-#include <stdio.h>
-#include <Camera.h>
+#include "SPIDriver.h"
+#include "iMX8GPIO.h"
 
-int main(int argc, char * argv[])
+class iMX8SPI : public SPIDriver
 {
-#ifdef RPi4
-	RPi4Board::boardInit();
-#endif
+  private:
+	iMX8GPIO gpioDriver;
+	PIN		 csPin;
 
-#ifdef iMX8
-	iMX8Board::boardInit();
-#endif
+  public:
+	void  init(PIN csPin, unsigned int frequency, int settings);
+	char  spiTransfer(char toSend);
+	short spiTransfer16(short toSend);
 
-	Camera camera;
-	camera.init();
-}
+	void csHigh();
+	void csLow();
+};
+
+#endif

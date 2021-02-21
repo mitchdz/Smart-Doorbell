@@ -21,35 +21,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  *
- * SmartDoorbellCLI
+ * iMX8GPIO
  *
- * This file contains the main entry and setup for the CLI version of the Smart
- * Doorbell application
+ * This module acts as a driver for iMX.8 board GPIO pins
  */
 
-#ifdef RPi4
-#include "RPi4.h"
-#else
-#ifdef iMX8
-#include "iMX8.h"
-#else
-#error Board input does not exist
-#endif
-#endif
+#ifndef IMX8GPIO_H
+#define IMX8GPIO_H
 
-#include <stdio.h>
-#include <Camera.h>
+#include "GPIODriver.h"
 
-int main(int argc, char * argv[])
+class iMX8GPIO : public GPIODriver
 {
-#ifdef RPi4
-	RPi4Board::boardInit();
-#endif
+  private:
+	int irq1	 = 0;
+	int irq2	 = 0;
+	int irqbasic = 0;
 
-#ifdef iMX8
-	iMX8Board::boardInit();
-#endif
+  public:
+	void init() {}
+	void noInterrupts();
+	void interrupts();
+	void pinMode(PIN pin, unsigned int mode);
+	void digitalWrite(PIN pin, int val);
+	int	 digitalRead(PIN pin);
+};
 
-	Camera camera;
-	camera.init();
-}
+#endif

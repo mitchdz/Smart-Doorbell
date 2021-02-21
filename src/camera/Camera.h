@@ -39,7 +39,13 @@
 #include "RPi4I2C.h"
 #include "RPi4Timer.h"
 #else
+#ifdef iMX8
+#include "iMX8SPI.h"
+#include "iMX8I2C.h"
+#include "iMX8Timer.h"
+#else
 #error Board input does not exist
+#endif
 #endif
 
 enum BUFFER_SIZE
@@ -262,9 +268,15 @@ class Camera
 	RPi4I2C	  i2cDriver;
 	RPi4Timer timer;
 #else
+#ifdef iMX8
+	iMX8SPI	  spiDriver;
+	iMX8I2C	  i2cDriver;
+	iMX8Timer timer;
+#else
 	SPIDriver spiDriver;
 	I2CDriver i2cDriver;
 	Timer	  timer;
+#endif
 #endif
 
 	unsigned char sensorAddress = 0;

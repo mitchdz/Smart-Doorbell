@@ -21,35 +21,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  *
- * SmartDoorbellCLI
+ * iMX8Timer
  *
- * This file contains the main entry and setup for the CLI version of the Smart
- * Doorbell application
+ * This module acts as the driver for iMX.8 timers
  */
 
-#ifdef RPi4
-#include "RPi4.h"
-#else
-#ifdef iMX8
-#include "iMX8.h"
-#else
-#error Board input does not exist
-#endif
-#endif
+#ifndef IMX8TIMER_H
+#define IMX8TIMER_H
 
-#include <stdio.h>
-#include <Camera.h>
+#include "Timer.h"
 
-int main(int argc, char * argv[])
+class iMX8Timer : public Timer
 {
-#ifdef RPi4
-	RPi4Board::boardInit();
-#endif
+  public:
+	void init() {}
+	void delay_us(unsigned int micros);
+};
 
-#ifdef iMX8
-	iMX8Board::boardInit();
 #endif
-
-	Camera camera;
-	camera.init();
-}

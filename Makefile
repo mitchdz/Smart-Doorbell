@@ -30,6 +30,7 @@ CXXFLAGS ?= -Wall -Werror
 
 OUTDIR ?= build
 
+# Options: RPi4, iMX8
 BOARD ?= RPi4
 DEBUG ?= false
 
