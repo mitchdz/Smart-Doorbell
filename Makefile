@@ -38,7 +38,7 @@ all:$(OUTDIR)/smart-doorbell
 
 # Smart Doorbell CLI app creation
 $(OUTDIR)/smart-doorbell:$(OUTDIR)/libCamera.so $(OUTDIR)/include/Camera.h
-	$(CXX) $(CXXFLAGS) -D$(BOARD) -I$(OUTDIR)/include -L$(OUTDIR) -lCamera -lBoard -lTimer -lGPIO -lI2C -lSPI -I$(OUTDIR)/include -o $@ src/main/SmartDoorbellCLI.cpp
+	$(CXX) -Wl,-R -Wl,$(CURDIR)/$(OUTDIR) $(CXXFLAGS) -D$(BOARD) -I$(OUTDIR)/include -L$(OUTDIR) -lCamera -lBoard -lTimer -lGPIO -lI2C -lSPI -I$(OUTDIR)/include -o $@ src/main/SmartDoorbellCLI.cpp
 
 
 # ArduCAM Library
