@@ -37,7 +37,7 @@ all:$(OUTDIR)/smart-doorbell
 
 # Smart Doorbell CLI app creation
 $(OUTDIR)/smart-doorbell:$(OUTDIR)/libCamera.so $(OUTDIR)/include/Camera.h
-	$(CC) -Wl,-R -Wl,$(CURDIR)/$(OUTDIR) $(CCFLAGS) -D$(DEFINES) -I$(OUTDIR)/include -L$(OUTDIR) -lCamera -lTimer -lGPIO -lI2C -lSPI -I$(OUTDIR)/include -o $@ src/main/SmartDoorbellCLI.c
+	$(CC) -Wl,-R -Wl,$(CURDIR)/$(OUTDIR) $(CCFLAGS) -D$(DEFINES) -I$(OUTDIR)/include -L$(OUTDIR) -lCamera -lTimer -lGPIO -li2c -lI2C -lSPI -I$(OUTDIR)/include -o $@ src/main/SmartDoorbellCLI.c
 
 # ArduCAM Library
 $(OUTDIR)/libCamera.so:$(OUTDIR)/libTimer.so $(OUTDIR)/include/Timer.h $(OUTDIR)/libGPIO.so $(OUTDIR)/include/GPIODriver.h $(OUTDIR)/libI2C.so $(OUTDIR)/include/I2CDriver.h $(OUTDIR)/libSPI.so $(OUTDIR)/include/SPIDriver.h src/camera
@@ -59,7 +59,7 @@ $(OUTDIR)/include/SPIDriver.h:src/SPI
 
 # I2C Library
 $(OUTDIR)/libI2C.so:$(OUTDIR)/include/Debug.h src/I2C
-	$(CC) $(LIBARGS) $(CCFLAGS) -D$(DEFINES) -L$(OUTDIR) -I$(OUTDIR)/include src/I2C/I2CDriver.c -o $(OUTDIR)/I2C.o
+	$(CC) $(LIBARGS) $(CCFLAGS) -D$(DEFINES) -L$(OUTDIR) -li2c -I$(OUTDIR)/include src/I2C/I2CDriver.c -o $(OUTDIR)/I2C.o
 	$(CC) -shared -o $@ $(OUTDIR)/I2C.o
 
 $(OUTDIR)/include/I2CDriver.h:src/I2C

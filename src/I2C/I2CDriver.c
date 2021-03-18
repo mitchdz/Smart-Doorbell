@@ -62,3 +62,30 @@ void I2C_init(int i2c_bus, unsigned char address)
 		ERROR_PRINTLN("Cannot change I2C slave address.");
 	}
 }
+
+/**
+ * Write a byte of data to the I2C bus
+ * @param data The byte of data to write
+ */
+void I2C_write(unsigned char data)
+{
+	int err = i2c_smbus_write_byte(i2c_file, data);
+	if(err < 0) { ERROR_PRINTLN("I2C Write Failed: 0x%hx, return %d", data, err); }
+}
+
+/**
+ * Read a byte of data from the I2C bus
+ * @return The byte that was read
+ */
+unsigned char I2C_read()
+{
+	int read_val = i2c_smbus_read_byte(i2c_file);
+
+	if(read_val < 0)
+	{
+		ERROR_PRINTLN("I2C Read failed: return %d", read_val);
+		return 0;
+	}
+
+	return read_val;
+}
