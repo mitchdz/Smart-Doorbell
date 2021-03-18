@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
 #include <i2c/smbus.h>
@@ -61,6 +62,14 @@ void I2C_init(int i2c_bus, unsigned char address)
 	{
 		ERROR_PRINTLN("Cannot change I2C slave address.");
 	}
+}
+
+/**
+ * Close I2C bus and cleanup
+ */
+void I2C_shutdown()
+{
+	if(close(i2c_file) < 0) { ERROR_PRINTLN("I2C Bus close failure"); }
 }
 
 /**

@@ -30,4 +30,8 @@
 //#include <Camera.h>
 #include "I2CDriver.h"
 
-int main(int argc, char * argv[]) { I2C_init(2, 0x12); }
+int main(int argc, char * argv[])
+{
+	I2C_init(1, 0x12);
+	I2C_shutdown();
+}

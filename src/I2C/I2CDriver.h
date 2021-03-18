@@ -31,6 +31,7 @@
 #define I2CDRIVER_H
 
 void		  I2C_init(int i2c_bus, unsigned char address);
+void		  I2C_shutdown();
 void		  I2C_write(unsigned char data);
 unsigned char I2C_read();
 
