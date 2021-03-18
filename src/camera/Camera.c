@@ -20,40 +20,13 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- * 
- * GPIODriver
- * 
- * This module acts as a parent class for drivers that control GPIO signals on
- * specific boards.
+ *
+ * Camera
+ *
+ * This module controls the setup and intake of live video from the ArduCam 5MP
+ * Plus OV5642 Camera
  */
 
-#include "GPIODriver.h"
-
-void GPIODriver::pinsMode(PIN pins[], unsigned int numPins, int mode)
-{
-    for(unsigned int i = 0; i < numPins; i++)
-    {
-        this->pinMode(pins[i], mode);
-    }
-}
-
-void GPIODriver::digitalWrites(PIN pins[], unsigned int numPins, int val)
-{
-    for(unsigned int i = 0; i < numPins; i++)
-    {
-        this->digitalWrite(pins[i], (val & 0x1));
-        val = val >> 1;
-    }
-}
-
-int GPIODriver::digitalReads(PIN pins[], unsigned int numPins)
-{
-    int val = 0;
-
-    for(int i = 0; i < numPins; i++)
-    {
-        val |= (digitalRead(pins[i]) & 0x1) << i;
-    }
-
-    return val;
-}
+#include "Camera.h"
+#include "ArduCAM.h"
+#include "ov5642_regs.h"

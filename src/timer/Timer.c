@@ -21,17 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  *
- * SPIDriver
+ * Timer
  *
- * This module acts as a parent class for drivers that control the SPI protocol on
- * specific boards
+ * This module acts as the parent class for board timers
  */
 
-#ifndef SPIDRIVER_H
-#define SPIDRIVER_H
+#include "Timer.h"
 
-void  SPI_init(int spi_bus, unsigned int frequency, int settings);
-char  SPI_transfer(char toSend);
-short SPI_transfer16(short toSend);
-
-#endif
+// void Timer_delay_ms(unsigned int millis) { Timer_delay_us(millis * 1000); };

@@ -27,29 +27,7 @@
  * Doorbell application
  */
 
-#ifdef RPi4
-#include "RPi4.h"
-#else
-#ifdef iMX8
-#include "iMX8.h"
-#else
-#error Board input does not exist
-#endif
-#endif
+//#include <Camera.h>
+#include "I2CDriver.h"
 
-#include <stdio.h>
-#include <Camera.h>
-
-int main(int argc, char * argv[])
-{
-#ifdef RPi4
-	RPi4Board::boardInit();
-#endif
-
-#ifdef iMX8
-	iMX8Board::boardInit();
-#endif
-
-	Camera camera;
-	camera.init();
-}
+int main(int argc, char * argv[]) { I2C_init(2, 0x12); }

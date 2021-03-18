@@ -27,11 +27,4 @@
  * specific boards
  */
 
-#ifndef SPIDRIVER_H
-#define SPIDRIVER_H
-
-void  SPI_init(int spi_bus, unsigned int frequency, int settings);
-char  SPI_transfer(char toSend);
-short SPI_transfer16(short toSend);
-
-#endif
+#include "SPIDriver.h"

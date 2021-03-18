@@ -30,24 +30,6 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include "SPIDriver.h"
-#include "I2CDriver.h"
-#include "Timer.h"
-
-#ifdef RPi4
-#include "RPi4SPI.h"
-#include "RPi4I2C.h"
-#include "RPi4Timer.h"
-#else
-#ifdef iMX8
-#include "iMX8SPI.h"
-#include "iMX8I2C.h"
-#include "iMX8Timer.h"
-#else
-#error Board input does not exist
-#endif
-#endif
-
 enum BUFFER_SIZE
 {
 	JPEG_BUFFER_SIZE = 2 * 1024 * 1024,
@@ -249,83 +231,6 @@ enum FRAMERATE_DETECT
 	FRAMERATE_MANUAL_50HZ,
 	FRAMERATE_MANUAL_60HZ,
 	FRAMERATE_AUTO_DETECT
-};
-
-class Camera
-{
-  private:
-	PIN			 csPin;
-	unsigned int currentLength;
-	IMAGE_TYPE	 format;
-
-	char readBuffer[JPEG_BUFFER_SIZE];
-	char commandBuffer[CMD_BUFFER_SIZE];
-
-	char * sendBuffer;
-
-#ifdef RPi4
-	RPi4SPI	  spiDriver;
-	RPi4I2C	  i2cDriver;
-	RPi4Timer timer;
-#else
-#ifdef iMX8
-	iMX8SPI	  spiDriver;
-	iMX8I2C	  i2cDriver;
-	iMX8Timer timer;
-#else
-	SPIDriver spiDriver;
-	I2CDriver i2cDriver;
-	Timer	  timer;
-#endif
-#endif
-
-	unsigned char sensorAddress = 0;
-
-	void		  clearFIFOFlag();
-	unsigned char readFIFO();
-	void		  flushFIFO();
-	unsigned int  readFIFOLength();
-	void		  setFIFOBurst();
-
-	unsigned char readRegister(unsigned char address);
-	void		  writeRegister(unsigned char address, unsigned char data);
-
-	void		  setBit(unsigned char address, unsigned char bit);
-	void		  clearBit(unsigned char address, unsigned char bit);
-	unsigned char getBit(unsigned char address, unsigned char bit);
-
-	unsigned char busWrite(int address, int value);
-	unsigned char busRead(int address);
-
-	unsigned char wrSensorReg8_8(int regID, int regDat);
-	int			  wrSensorRegs8_8(const struct sensor_reg *);
-	unsigned char rdSensorReg8_8(unsigned char regID, unsigned char * regDat);
-
-	unsigned char wrSensorReg16_8(int regID, int regDat);
-	int			  wrSensorRegs16_8(const struct sensor_reg reglist[]);
-	unsigned char rdSensorReg16_8(unsigned int regID, unsigned char * regDat);
-	int			  rdSensorRegs16_8(const struct sensor_reg reglist[]);
-
-  public:
-	Camera(unsigned int cs);
-	Camera();
-	~Camera() = default;
-
-	void init();
-
-	void activate();
-	void deactivate();
-
-	void setImageFormat(IMAGE_TYPE format);
-	void setResolution(RESOLUTION res);
-	void setColorSaturation(COLOR_SATURATION sat);
-	void setBrightness(BRIGHTNESS level);
-	void setSpecialEffect(SPECIAL_EFFECTS effect);
-	void setSharpnessType(SHARPNESS_TYPE sharpness);
-
-	void resetFirmware();
-	void singleCapture();
-	void startCapture();
 };
 
 #endif

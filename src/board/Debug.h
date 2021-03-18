@@ -36,22 +36,22 @@
 	do {                     \
 		printf(__VA_ARGS__); \
 		printf("\n");        \
-	} while(false)
+	} while(0)
 
 #define ERROR_PRINTLN(...)            \
 	do {                              \
 		fprintf(stderr, "Error: ");   \
 		fprintf(stderr, __VA_ARGS__); \
 		fprintf(stderr, "\n");        \
-	} while(false)
+	} while(0)
 
 #else
 #define DEBUG_PRINTLN(...) \
 	do {                   \
-	} while(false)
+	} while(0)
 
 #define ERROR_PRINTLN(...) \
 	do {                   \
-	} while(false)
+	} while(0)
 #endif
 #endif

@@ -30,18 +30,6 @@
 #ifndef GPIODRIVER_H
 #define GPIODRIVER_H
 
-enum GPIO_SETUP
-{
-	GPIO_INPUT	= 0,
-	GPIO_OUTPUT = 1,
-	GPIO_ALT0	= 4,
-	GPIO_ALT1	= 5,
-	GPIO_ALT2	= 6,
-	GPIO_ALT3	= 7,
-	GPIO_ALT4	= 3,
-	GPIO_ALT5	= 2
-};
-
 enum GPIO_LEVEL
 {
 	GPIO_LOW = 0,
@@ -50,26 +38,9 @@ enum GPIO_LEVEL
 
 typedef int PIN;
 
-class GPIODriver
-{
-  public:
-	virtual void init();
-	virtual void noInterrupts();
-	virtual void interrupts();
-	virtual void pinMode(PIN pin, unsigned int mode);
-	virtual void digitalWrite(PIN pin, int val);
-	virtual int	 digitalRead(PIN pin);
-
-	void pinsMode(PIN pins[], unsigned int numPins, int mode);
-	void digitalWrites(PIN pins[], unsigned int numPins, int val);
-	int	 digitalReads(PIN pins[], unsigned int numPins);
-};
-
-inline void GPIODriver::init() {}
-inline void GPIODriver::noInterrupts() {}
-inline void GPIODriver::interrupts() {}
-inline void GPIODriver::pinMode(PIN pin, unsigned int mode) {}
-inline void GPIODriver::digitalWrite(PIN pin, int val) {}
-inline int	GPIODriver::digitalRead(PIN pin) { return 0; }
+void GPIO_init();
+void GPIO_pin_mode(PIN pin, unsigned int mode);
+void GPIO_digital_write(PIN pin, int val);
+int	 GPIO_digital_read(PIN pin);
 
 #endif

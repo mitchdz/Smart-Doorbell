@@ -29,6 +29,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
 #include <i2c/smbus.h>
 
@@ -37,7 +39,7 @@
 #include "I2CDriver.h"
 
 char i2c_filename[20];
-FILE i2c_file;
+int	 i2c_file;
 
 /**
  * Initialize I2C bus of given number for transactions with a slave device with a given address

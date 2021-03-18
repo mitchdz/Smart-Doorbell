@@ -21,17 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  *
- * SPIDriver
+ * GPIODriver
  *
- * This module acts as a parent class for drivers that control the SPI protocol on
- * specific boards
+ * This module acts as a parent class for drivers that control GPIO signals on
+ * specific boards.
  */
 
-#ifndef SPIDRIVER_H
-#define SPIDRIVER_H
-
-void  SPI_init(int spi_bus, unsigned int frequency, int settings);
-char  SPI_transfer(char toSend);
-short SPI_transfer16(short toSend);
-
-#endif
+#include "GPIODriver.h"

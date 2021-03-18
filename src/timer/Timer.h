@@ -29,17 +29,8 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-class Timer
-{
-  public:
-	virtual void init();
-	virtual void delay_us(unsigned int micros);
-	void		 delay_ms(unsigned int millis);
-};
-
-inline void Timer::delay_ms(unsigned int millis) { this->delay_us(millis * 1000); };
-
-inline void Timer::init() {}
-inline void Timer::delay_us(unsigned int micros) {}
+void Timer_init();
+void Timer_delay_us(unsigned int micros);
+void Timer_delay_ms(unsigned int millis);
 
 #endif
