@@ -26,6 +26,9 @@
  * This module acts as the parent class for board timers
  */
 
+#include <unistd.h>
+
 #include "Timer.h"
 
-// void Timer_delay_ms(unsigned int millis) { Timer_delay_us(millis * 1000); };
+void Timer_delay_us(unsigned int micros) { usleep(micros); }
+void Timer_delay_ms(unsigned int millis) { Timer_delay_us(millis * 1000); };
