@@ -27,11 +27,36 @@
  * specific boards
  */
 
-#ifndef I2CDRIVER_H
-#define I2CDRIVER_H
+#include <stdlib.h>
+#include <stdio.h>
+#include <linux/i2c-dev.h>
+#include <i2c/smbus.h>
 
-void		  I2C_init(int i2c_bus, unsigned char address);
-void		  I2C_write(unsigned char data);
-unsigned char I2C_read();
+#include "Debug.h"
 
-#endif
+#include "I2CDriver.h"
+
+char i2c_filename[20];
+FILE i2c_file;
+
+/**
+ * Initialize I2C bus of given number for transactions with a slave device with a given address
+ * @param i2c_bus The I2C bus number
+ * @param address The slave device address
+ */
+void I2C_init(int i2c_bus, unsigned char address)
+{
+	snprintf(i2c_filename, 19, "/dev/i2c-%d", i2c_bus);
+	i2c_file = open(i2c_filename, O_RDWR);
+
+	if(i2c_file < 0)
+	{
+		ERROR_PRINTLN("%19s does not exist.", i2c_filename);
+		return;
+	}
+
+	if(ioctl(i2c_file, I2C_SLAVE, address) < 0)
+	{
+		ERROR_PRINTLN("Cannot change I2C slave address.");
+	}
+}
