@@ -76,8 +76,8 @@ void SPI_init(int spi_bus, unsigned int frequency)
 		ERROR_PRINTLN("Cannot set max SPI speed of %u.", frequency);
 	}
 
-	xfer.tx_buf		   = (__u64) tx_buf;
-	xfer.rx_buf		   = (__u64) rx_buf;
+	xfer.tx_buf		   = (unsigned long) tx_buf;
+	xfer.rx_buf		   = (unsigned long) rx_buf;
 	xfer.delay_usecs   = 0;
 	xfer.speed_hz	   = frequency;
 	xfer.bits_per_word = bits_per_word;
