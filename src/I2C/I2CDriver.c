@@ -39,8 +39,8 @@
 
 #include "I2CDriver.h"
 
-char i2c_filename[20];
-int	 i2c_file;
+static int i2c_file;
+char	   i2c_filename[20];
 
 /**
  * Initialize I2C bus of given number for transactions with a slave device with a given address
