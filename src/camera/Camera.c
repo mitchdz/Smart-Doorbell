@@ -27,6 +27,459 @@
  * Plus OV5642 Camera
  */
 
+#include "Debug.h"
+#include "I2CDriver.h"
+#include "SPIDriver.h"
+#include "Timer.h"
+
 #include "Camera.h"
 #include "ArduCAM.h"
 #include "ov5642_regs.h"
+
+void		  clearFIFOFlag();
+unsigned char readFIFO();
+void		  flushFIFO();
+unsigned int  readFIFOLength();
+void		  setFIFOBurst();
+
+unsigned char readRegister(unsigned char address);
+void		  writeRegister(unsigned char address, unsigned char data);
+
+void		  setBit(unsigned char address, unsigned char bit);
+void		  clearBit(unsigned char address, unsigned char bit);
+unsigned char getBit(unsigned char address, unsigned char bit);
+
+void		  busWrite(int address, int value);
+unsigned char busRead(int address);
+
+void wrSensorReg8_8(int regID, int regDat);
+void wrSensorRegs8_8(const struct sensor_reg * reglist);
+void rdSensorReg8_8(unsigned char regID, unsigned char * regDat);
+
+void wrSensorReg16_8(int regID, int regDat);
+void wrSensorRegs16_8(const struct sensor_reg reglist[]);
+void rdSensorReg16_8(unsigned int regID, unsigned char * regDat);
+void rdSensorRegs16_8(struct sensor_reg reglist[]);
+
+static IMAGE_TYPE format;
+char			  read_buffer[JPEG_BUFFER_SIZE];
+char			  command_buffer[CMD_BUFFER_SIZE];
+char *			  send_buffer;
+
+/**
+ * Initialize Camera variables and communication busses
+ * @param i2c_bus The I2C bus number
+ * @param spi_bus The SPI bus number
+ */
+void Camera_init(int i2c_bus, int spi_bus)
+{
+	format = IMG_JPEG;
+
+	I2C_init(i2c_bus, 0x78);
+	SPI_init(spi_bus, 8000000);
+
+	// Check for Camera until SPI exists
+	while(1)
+	{
+		writeRegister(ARDUCHIP_TEST1, 0x55);
+		unsigned char temp = readRegister(ARDUCHIP_TEST1);
+
+		if(temp != 0x55)
+		{
+			ERROR_PRINTLN("Camera SPI unavailable.");
+			Timer_delay_ms(1000);
+		}
+		else
+		{
+			DEBUG_PRINTLN("Camera SPI online.");
+			break;
+		}
+	}
+
+	unsigned char pid = 0, vid = 0;
+
+	// Check for camera I2C until it exists
+	while(1)
+	{
+		rdSensorReg16_8(OV5642_CHIPID_HIGH, &vid);
+		rdSensorReg16_8(OV5642_CHIPID_LOW, &pid);
+
+		if(vid != 0x56 || pid != 0x42)
+		{
+			ERROR_PRINTLN("Camera I2C unavailable: vid = 0x%x, pid = 0x%x", vid, pid);
+		}
+		else
+		{
+			DEBUG_PRINTLN("Camera I2C online.");
+		}
+	}
+
+	wrSensorReg16_8(0x3008, 0x80);
+	wrSensorRegs16_8(OV5642_QVGA_Preview);
+
+	if(format == IMG_JPEG)
+	{
+		wrSensorRegs16_8(OV5642_JPEG_Capture_QSXGA);
+		wrSensorRegs16_8(ov5642_320x240);
+		wrSensorReg16_8(0x3818, 0xa8);
+		wrSensorReg16_8(0x3621, 0x10);
+		wrSensorReg16_8(0x3801, 0xb0);
+		wrSensorReg16_8(0x4407, 0x04);
+	}
+	else
+	{
+		unsigned char reg_val;
+		wrSensorReg16_8(0x4740, 0x21);
+		wrSensorReg16_8(0x501e, 0x2a);
+		wrSensorReg16_8(0x5002, 0xf8);
+		wrSensorReg16_8(0x501f, 0x01);
+		wrSensorReg16_8(0x4300, 0x61);
+		rdSensorReg16_8(0x3818, &reg_val);
+		wrSensorReg16_8(0x3818, (reg_val | 0x60) & 0xff);
+		rdSensorReg16_8(0x3621, &reg_val);
+		wrSensorReg16_8(0x3621, reg_val & 0xdf);
+	}
+
+	Camera_set_resolution(RES_320x240);
+}
+
+/**
+ * Shutdown camera and close communication
+ */
+void Camera_shutdown()
+{
+	I2C_shutdown();
+	SPI_shutdown();
+}
+
+/**
+ * Set the image format to output
+ * @param img_format The image format (JPEG or BMP)
+ */
+void Camera_set_image_format(IMAGE_TYPE img_format) { format = img_format; }
+
+/**
+ * Update the camera's output image resolution
+ * @param res The resolution option Width x Height
+ */
+void Camera_set_resolution(RESOLUTION res)
+{
+	switch(res)
+	{
+		case RES_320x240:
+			wrSensorRegs16_8(ov5642_320x240);
+			break;
+		case RES_640x480:
+			wrSensorRegs16_8(ov5642_640x480);
+			break;
+		case RES_1024x768:
+			wrSensorRegs16_8(ov5642_1024x768);
+			break;
+		case RES_1280x960:
+			wrSensorRegs16_8(ov5642_1280x960);
+			break;
+		case RES_1600x1200:
+			wrSensorRegs16_8(ov5642_1600x1200);
+			break;
+		case RES_2048x1536:
+			wrSensorRegs16_8(ov5642_2048x1536);
+			break;
+		case RES_2592x1944:
+			wrSensorRegs16_8(ov5642_2592x1944);
+			break;
+		default:
+			break;
+	}
+}
+
+/**
+ * Update the camera's color saturation level
+ * @param sat the saturation level
+ */
+void Camera_set_color_saturation(COLOR_SATURATION sat)
+{
+	wrSensorReg16_8(0x5001, 0xff);
+
+	switch(sat)
+	{
+		case SAT_4:
+			wrSensorReg16_8(0x5583, 0x80);
+			wrSensorReg16_8(0x5584, 0x80);
+			break;
+		case SAT_3:
+			wrSensorReg16_8(0x5583, 0x70);
+			wrSensorReg16_8(0x5584, 0x70);
+			break;
+		case SAT_2:
+			wrSensorReg16_8(0x5583, 0x60);
+			wrSensorReg16_8(0x5584, 0x60);
+			break;
+		case SAT_1:
+			wrSensorReg16_8(0x5583, 0x50);
+			wrSensorReg16_8(0x5584, 0x50);
+			break;
+		case SAT_0:
+			wrSensorReg16_8(0x5583, 0x40);
+			wrSensorReg16_8(0x5584, 0x40);
+			break;
+		case SAT_NEG_1:
+			wrSensorReg16_8(0x5583, 0x30);
+			wrSensorReg16_8(0x5584, 0x30);
+			break;
+		case SAT_NEG_2:
+			wrSensorReg16_8(0x5583, 0x20);
+			wrSensorReg16_8(0x5584, 0x20);
+			break;
+		case SAT_NEG_3:
+			wrSensorReg16_8(0x5583, 0x10);
+			wrSensorReg16_8(0x5584, 0x10);
+			break;
+		case SAT_NEG_4:
+			wrSensorReg16_8(0x5583, 0x00);
+			wrSensorReg16_8(0x5584, 0x00);
+			break;
+		default:
+			wrSensorReg16_8(0x5583, 0x40);
+			wrSensorReg16_8(0x5584, 0x40);
+			break;
+	}
+
+	wrSensorReg16_8(0x5580, 0x02);
+}
+
+void Camera_set_brightness(BRIGHTNESS level);
+void Camera_set_special_effect(SPECIAL_EFFECTS effect);
+void Camera_set_sharpness_type(SHARPNESS_TYPE sharpness);
+
+void Camera_reset_firmware();
+void Camera_single_capture();
+void Camera_start_capture();
+
+/**
+ * Clear the flag marking new data in the camera FIFO queue
+ */
+void clearFIFOFlag() { writeRegister(ARDUCHIP_FIFO, FIFO_CLEAR_MASK); }
+
+/**
+ * Read the next byte in the camera's FIFO queue
+ * @return the next byte
+ */
+unsigned char readFIFO() { return busRead(SINGLE_FIFO_READ); }
+
+/**
+ * Flush out the current data in the camera's FIFO queue
+ */
+void flushFIFO() { writeRegister(ARDUCHIP_FIFO, FIFO_CLEAR_MASK); }
+
+/**
+ * Read the current size of the camera's SPI FIFO queue
+ * @return the FIFO queue length
+ */
+unsigned int readFIFOLength()
+{
+	return (((readRegister(FIFO_SIZE3)) << 16) | ((readRegister(FIFO_SIZE2)) << 8) |
+			readRegister(FIFO_SIZE1)) &
+		   0x7fffff;
+}
+
+/**
+ * Set the camera's SPI FIFO queue to burst mode
+ */
+void setFIFOBurst() { SPI_transfer(BURST_FIFO_READ); }
+
+/**
+ * Read a byte from a camera register
+ * @param address the register address
+ * @return the data within the register
+ */
+unsigned char readRegister(unsigned char address) { return busRead(address & 0x7F); }
+
+/**
+ * Write a byte to a camera register
+ * @param address the register address
+ * @param data the data to put in the register
+ */
+void writeRegister(unsigned char address, unsigned char data) { busWrite(address | 0x80, data); }
+
+/**
+ * Set a single bit on a camera register to 1
+ * @param address the register address
+ * @param bit the bit mask
+ */
+void setBit(unsigned char address, unsigned char bit)
+{
+	unsigned char temp = readRegister(address);
+	writeRegister(address, temp | bit);
+}
+
+/**
+ * Set a single bit on a camera register to 0
+ * @param address the register address
+ * @param bit the bit mask
+ */
+void clearBit(unsigned char address, unsigned char bit)
+{
+	unsigned char temp = readRegister(address);
+	writeRegister(address, temp & (~bit));
+}
+
+/**
+ * Get a single bit from a camera register
+ * @param address the address of the register
+ * @param bit the bit mask for the bit to read
+ * @return the bit in its bit location within a byte of zeros
+ */
+unsigned char getBit(unsigned char address, unsigned char bit)
+{
+	return readRegister(address) & bit;
+}
+
+/**
+ * Write to a SPI address on the camera
+ * @param address The register/command address over SPI
+ * @param value The data to send with the command or to the register
+ */
+void busWrite(int address, int value) { SPI_transfer16(((address & 0xFF) << 8) | (value & 0xFF)); }
+
+/**
+ * Read from an SPI address on the camera
+ * @param address the address of the SPI register
+ * @return the value within that address
+ */
+unsigned char busRead(int address)
+{
+	unsigned short output = SPI_transfer16((address & 0xFF) << 8);
+	return output & 0xFF;
+}
+
+/**
+ * Write to an I2C register with an 8-bit ID
+ * @param regID the ID of the register to write to
+ * @param regDat the data to write to the register
+ */
+void wrSensorReg8_8(int regID, int regDat)
+{
+	Timer_delay_us(10);
+	I2C_write(regID);
+	Timer_delay_us(10);
+	I2C_write(regDat);
+	Timer_delay_us(10);
+}
+
+/**
+ * Write to a set of I2C registers with 8-bit IDs
+ * @param reglist the list of register IDs and the data to put in them
+ */
+void wrSensorRegs8_8(const struct sensor_reg * reglist)
+{
+	unsigned int regAddress = 0;
+	unsigned int regValue	= 0;
+
+	const struct sensor_reg * next = reglist;
+
+	while((regAddress != 0xff) | (regValue != 0xff))
+	{
+		regAddress = next->reg;
+		regValue   = next->val;
+		wrSensorReg8_8(regAddress, regValue);
+
+		Timer_delay_us(10);
+
+		next++;
+	}
+}
+
+/**
+ * Read from an I2C register with an 8-bit ID
+ * @param regID the ID of the register to read from
+ * @param[out] regDat the data from the register
+ */
+void rdSensorReg8_8(unsigned char regID, unsigned char * regDat)
+{
+	Timer_delay_us(10);
+	I2C_write(regID);
+	Timer_delay_us(10);
+	*regDat = I2C_read();
+	Timer_delay_us(10);
+}
+
+/**
+ * Write to an I2C register with a 16-bit ID
+ * @param regID the ID of the register to write to
+ * @param regDat the data to write to the register
+ */
+void wrSensorReg16_8(int regID, int regDat)
+{
+	Timer_delay_us(10);
+	I2C_write((regID >> 8) & 0xFF);
+	Timer_delay_us(10);
+	I2C_write(regID & 0xFF);
+	Timer_delay_us(10);
+	I2C_write(regDat);
+	Timer_delay_us(10);
+}
+
+/**
+ * Write to a set of I2C registers with 16-bit IDs
+ * @param reglist the list of register IDs and the data to put in them
+ */
+void wrSensorRegs16_8(const struct sensor_reg reglist[])
+{
+	unsigned int regAddress = 0;
+	unsigned int regValue	= 0;
+
+	const struct sensor_reg * next = reglist;
+
+	while((regAddress != 0xffff) | (regValue != 0xff))
+	{
+		regAddress = next->reg;
+		regValue   = next->val;
+		wrSensorReg16_8(regAddress, regValue);
+
+		Timer_delay_us(10);
+
+		next++;
+	}
+}
+
+/**
+ * Read from an I2C register with a 16-bit ID
+ * @param regID the ID of the register to read from
+ * @param[out] regDat the data from the register
+ */
+void rdSensorReg16_8(unsigned int regID, unsigned char * regDat)
+{
+	Timer_delay_us(10);
+	I2C_write((regID >> 8) & 0xFF);
+	Timer_delay_us(10);
+	I2C_write(regID & 0xFF);
+	Timer_delay_us(10);
+	*regDat = I2C_read();
+	Timer_delay_us(10);
+}
+
+/**
+ * Read from a set of I2C registers with 16-bit IDs
+ * @param[out] reglist the IDs to read from and their data output
+ */
+void rdSensorRegs16_8(struct sensor_reg reglist[])
+{
+	unsigned int  regAddress = 0;
+	unsigned int  regValue	 = 0;
+	unsigned char rd_out	 = 0;
+
+	struct sensor_reg * next = reglist;
+
+	while((regAddress != 0xffff) | (regValue != 0xff))
+	{
+		regAddress = next->reg;
+		regValue   = next->val;
+		rdSensorReg16_8(regAddress, &rd_out);
+
+		next->val = rd_out;
+
+		Timer_delay_us(10);
+
+		next++;
+	}
+}

@@ -42,14 +42,14 @@ enum CHIPID_LEVEL
 	CHIPID_LOW	= 0x300b
 };
 
-enum IMAGE_TYPE
+typedef enum
 {
 	IMG_BMP = 0,
 	IMG_JPEG,
 	IMG_RAW
-};
+} IMAGE_TYPE;
 
-enum RESOLUTION
+typedef enum
 {
 	RES_320x240 = 0,	// 320x240
 	RES_640x480,		// 640x480
@@ -58,18 +58,18 @@ enum RESOLUTION
 	RES_1600x1200,		// 1600x1200
 	RES_2048x1536,		// 2048x1536
 	RES_2592x1944		// 2592x1944
-};
+} RESOLUTION;
 
-enum LIGHT_MODE
+typedef enum
 {
 	MODE_AUTO = 0,
 	MODE_SUNNY,
 	MODE_CLOUDY,
 	MODE_OFFICE,
 	MODE_HOME
-};
+} LIGHT_MODE;
 
-enum ADVANCED_LIGHT_MODE
+typedef enum
 {
 	MODE_ADVANCED_AWB = 0,
 	MODE_SIMPLE_AWB,
@@ -77,9 +77,9 @@ enum ADVANCED_LIGHT_MODE
 	MODE_MANUAL_A,
 	MODE_MANUAL_CWF,
 	MODE_MANUAL_CLOUDY
-};
+} ADVANCED_LIGHT_MODE;
 
-enum COLOR_SATURATION
+typedef enum
 {
 	SAT_4 = 0,
 	SAT_3,
@@ -90,9 +90,9 @@ enum COLOR_SATURATION
 	SAT_NEG_2,
 	SAT_NEG_3,
 	SAT_NEG_4
-};
+} COLOR_SATURATION;
 
-enum BRIGHTNESS
+typedef enum
 {
 	BRIGHTNESS_4 = 0,
 	BRIGHTNESS_3,
@@ -103,9 +103,9 @@ enum BRIGHTNESS
 	BRIGHTNESS_NEG_2,
 	BRIGHTNESS_NEG_3,
 	BRIGHTNESS_NEG_4
-};
+} BRIGHTNESS;
 
-enum CONTRAST
+typedef enum
 {
 	CONTRAST_4 = 0,
 	CONTRAST_3,
@@ -116,9 +116,9 @@ enum CONTRAST
 	CONTRAST_NEG_2,
 	CONTRAST_NEG_3,
 	CONTRAST_NEG_4
-};
+} CONTRAST;
 
-enum ROTATION
+typedef enum
 {
 	DEG_NEG_180 = 0,
 	DEG_NEG_150,
@@ -132,9 +132,9 @@ enum ROTATION
 	DEG_90,
 	DEG_120,
 	DEG_150
-};
+} ROTATION;
 
-enum SPECIAL_EFFECTS
+typedef enum
 {
 	EFFECT_BLUISH,
 	EFFECT_GREENISH,
@@ -143,9 +143,9 @@ enum SPECIAL_EFFECTS
 	EFFECT_NEGATIVE,
 	EFFECT_NORMAL,
 	EFFECT_SEPIA,
-};
+} SPECIAL_EFFECTS;
 
-enum EXPOSURE
+typedef enum
 {
 	EXP_NEG_17_EV = 0,
 	EXP_NEG_13_EV,
@@ -158,9 +158,9 @@ enum EXPOSURE
 	EXP_13_EV,
 	EXP_17_EV,
 	EXP_03_EV
-};
+} EXPOSURE;
 
-enum SHARPNESS_TYPE
+typedef enum
 {
 	SHARP_AUTO_DEFAULT = 0,
 	SHARP_AUTO_1,
@@ -171,9 +171,9 @@ enum SHARPNESS_TYPE
 	SHARP_MANUAL_3,
 	SHARP_MANUAL_4,
 	SHARP_MANUAL_5
-};
+} SHARPNESS_TYPE;
 
-enum SHARPNESS_LEVEL
+typedef enum
 {
 	SHARP_1 = 0,
 	SHARP_2,
@@ -184,9 +184,9 @@ enum SHARPNESS_LEVEL
 	SHARP_7,
 	SHARP_8,
 	SHARP_AUTO
-};
+} SHARPNESS_LEVEL;
 
-enum EV
+typedef enum
 {
 	EV_3 = 0,
 	EV_2,
@@ -195,7 +195,7 @@ enum EV
 	EV_NEG_1,
 	EV_NEG_2,
 	EV_NEG_3
-};
+} EV;
 
 enum FLIP
 {
@@ -232,5 +232,19 @@ enum FRAMERATE_DETECT
 	FRAMERATE_MANUAL_60HZ,
 	FRAMERATE_AUTO_DETECT
 };
+
+void Camera_init(int i2c_bus, int spi_bus);
+void Camera_shutdown();
+
+void Camera_set_image_format(IMAGE_TYPE img_format);
+void Camera_set_resolution(RESOLUTION res);
+void Camera_set_color_saturation(COLOR_SATURATION sat);
+void Camera_set_brightness(BRIGHTNESS level);
+void Camera_set_special_effect(SPECIAL_EFFECTS effect);
+void Camera_set_sharpness_type(SHARPNESS_TYPE sharpness);
+
+void Camera_reset_firmware();
+void Camera_single_capture();
+void Camera_start_capture();
 
 #endif
