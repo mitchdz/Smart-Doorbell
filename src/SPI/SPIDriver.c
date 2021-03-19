@@ -91,5 +91,37 @@ void SPI_shutdown()
 	if(close(spi_file) < 0) { ERROR_PRINTLN("SPI Bus close failure"); }
 }
 
-char  SPI_transfer(char toSend);
-short SPI_transfer16(short toSend);
+unsigned char SPI_transfer(unsigned char toSend)
+{
+	tx_buf[0] = toSend;
+	rx_buf[0] = 0;
+	xfer.len  = 1;
+
+	if(ioctl(spi_file, SPI_IOC_MESSAGE(1), xfer) < 0)
+	{
+		ERROR_PRINTLN("SPI single byte transfer failed");
+		return 0;
+	}
+
+	return rx_buf[0];
+}
+
+unsigned short SPI_transfer16(unsigned short toSend)
+{
+	tx_buf[0] = (unsigned char) ((toSend >> 8) & 0xFF);
+	tx_buf[1] = (unsigned char) (toSend & 0xFF);
+
+	rx_buf[0] = 0;
+	rx_buf[1] = 0;
+
+	xfer.len = 2;
+
+	if(ioctl(spi_file, SPI_IOC_MESSAGE(2), xfer) < 0)
+	{
+		ERROR_PRINTLN("SPI 2 byte transfer failed");
+		return 0;
+	}
+
+	unsigned short output = (((unsigned short) rx_buf[0]) << 8) | rx_buf[1];
+	return output;
+}

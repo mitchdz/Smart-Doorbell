@@ -33,7 +33,7 @@
 void SPI_init(int spi_bus, unsigned int frequency);
 void SPI_shutdown();
 
-char  SPI_transfer(char toSend);
-short SPI_transfer16(short toSend);
+unsigned char  SPI_transfer(unsigned char toSend);
+unsigned short SPI_transfer16(unsigned short toSend);
 
 #endif
