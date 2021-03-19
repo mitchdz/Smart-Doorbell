@@ -27,11 +27,33 @@
  * Doorbell application
  */
 
+#include <pthread.h>
+#include <signal.h>
+#include <unistd.h>
+
 #include <Camera.h>
 
+void * camera_thread_handler(void * arg);
+
 int main(int argc, char * argv[])
+{
+	pthread_t camera_thread;
+	pthread_create(&camera_thread, NULL, camera_thread_handler, NULL);
+
+	sleep(120);
+	pthread_kill(camera_thread, 0);
+}
+
+/**
+ * Function for handling use of camera on its own thread
+ * @param arg Unused
+ * @return Unused
+ */
+void * camera_thread_handler(void * arg)
 {
 	Camera_init(1, 1);
 	Camera_single_capture();
 	Camera_shutdown();
+
+	return 0;
 }
