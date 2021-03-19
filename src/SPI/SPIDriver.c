@@ -93,6 +93,12 @@ void SPI_shutdown()
 
 unsigned char SPI_transfer(unsigned char toSend)
 {
+	if(spi_file < 0)
+	{
+		ERROR_PRINTLN("SPI unavailable");
+		return 0;
+	}
+
 	tx_buf[0] = toSend;
 	rx_buf[0] = 0;
 	xfer.len  = 1;
@@ -108,6 +114,12 @@ unsigned char SPI_transfer(unsigned char toSend)
 
 unsigned short SPI_transfer16(unsigned short toSend)
 {
+	if(spi_file < 0)
+	{
+		ERROR_PRINTLN("SPI unavailable");
+		return 0;
+	}
+
 	tx_buf[0] = (unsigned char) ((toSend >> 8) & 0xFF);
 	tx_buf[1] = (unsigned char) (toSend & 0xFF);
 

@@ -78,6 +78,12 @@ void I2C_shutdown()
  */
 void I2C_write(unsigned char data)
 {
+	if(i2c_file < 0)
+	{
+		ERROR_PRINTLN("I2C unavailable");
+		return 0;
+	}
+
 	int err = i2c_smbus_write_byte(i2c_file, data);
 	if(err < 0) { ERROR_PRINTLN("I2C Write Failed: 0x%hx, return %d", data, err); }
 }
@@ -88,6 +94,12 @@ void I2C_write(unsigned char data)
  */
 unsigned char I2C_read()
 {
+	if(i2c_file < 0)
+	{
+		ERROR_PRINTLN("I2C unavailable");
+		return 0;
+	}
+
 	int read_val = i2c_smbus_read_byte(i2c_file);
 
 	if(read_val < 0)
