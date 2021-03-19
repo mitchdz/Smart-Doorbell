@@ -27,4 +27,69 @@
  * specific boards
  */
 
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+#include <linux/types.h>
+#include <linux/spi/spidev.h>
+
+#include "Debug.h"
+
 #include "SPIDriver.h"
+
+static int spi_file;
+char	   spi_filename[20];
+
+char tx_buf[256];
+char rx_buf[256];
+
+struct spi_ioc_transfer xfer;
+
+/**
+ * Initialize SPI bus of given number for transactions with a slave device at a given frequency
+ * @param spi_bus The SPI bus number
+ * @param frequency The clock frequency in Hz
+ */
+void SPI_init(int spi_bus, unsigned int frequency)
+{
+	__u8 bits_per_word = 8;
+	__u8 mode		   = SPI_MODE_0;
+
+	snprintf(spi_filename, 19, "/dev/spidev0.%d", spi_bus);
+	spi_file = open(spi_filename, O_RDWR);
+
+	if(spi_file < 0)
+	{
+		ERROR_PRINTLN("%19s does not exist.", spi_filename);
+		return;
+	}
+
+	if(ioctl(spi_file, SPI_IOC_WR_MODE, &mode) < 0) { ERROR_PRINTLN("Cannot set mode %uh", mode); }
+
+	if(ioctl(spi_file, SPI_IOC_WR_BITS_PER_WORD, &bits_per_word) < 0)
+	{
+		ERROR_PRINTLN("Cannot set %hu bits per word.", bits_per_word);
+	}
+
+	if(ioctl(spi_file, SPI_IOC_WR_MAX_SPEED_HZ, &frequency) < 0)
+	{
+		ERROR_PRINTLN("Cannot set max SPI speed of %u.", frequency);
+	}
+
+	xfer.tx_buf		   = (__u64) tx_buf;
+	xfer.rx_buf		   = (__u64) rx_buf;
+	xfer.delay_usecs   = 0;
+	xfer.speed_hz	   = frequency;
+	xfer.bits_per_word = bits_per_word;
+}
+
+/**
+ * Close SPI bus and cleanup
+ */
+void SPI_shutdown()
+{
+	if(close(spi_file) < 0) { ERROR_PRINTLN("SPI Bus close failure"); }
+}
+
+char  SPI_transfer(char toSend);
+short SPI_transfer16(short toSend);

@@ -29,9 +29,13 @@
 
 //#include <Camera.h>
 #include "I2CDriver.h"
+#include "SPIDriver.h"
 
 int main(int argc, char * argv[])
 {
 	I2C_init(1, 0x12);
+	SPI_init(1, 8000000);
+
+	SPI_shutdown();
 	I2C_shutdown();
 }

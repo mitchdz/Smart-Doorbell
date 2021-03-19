@@ -30,7 +30,9 @@
 #ifndef SPIDRIVER_H
 #define SPIDRIVER_H
 
-void  SPI_init(int spi_bus, unsigned int frequency, int settings);
+void SPI_init(int spi_bus, unsigned int frequency);
+void SPI_shutdown();
+
 char  SPI_transfer(char toSend);
 short SPI_transfer16(short toSend);
 
