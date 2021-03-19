@@ -78,11 +78,7 @@ void I2C_shutdown()
  */
 void I2C_write(unsigned char data)
 {
-	if(i2c_file < 0)
-	{
-		ERROR_PRINTLN("I2C unavailable");
-		return 0;
-	}
+	if(i2c_file < 0) { ERROR_PRINTLN("I2C unavailable"); }
 
 	int err = i2c_smbus_write_byte(i2c_file, data);
 	if(err < 0) { ERROR_PRINTLN("I2C Write Failed: 0x%hx, return %d", data, err); }
