@@ -66,6 +66,8 @@ char			  read_buffer[JPEG_BUFFER_SIZE];
 char			  command_buffer[CMD_BUFFER_SIZE];
 char *			  send_buffer;
 
+int current_jpeg_buffer_size;
+
 /**
  * Initialize Camera variables and communication busses
  * @param i2c_bus The I2C bus number
@@ -247,13 +249,204 @@ void Camera_set_color_saturation(COLOR_SATURATION sat)
 	wrSensorReg16_8(0x5580, 0x02);
 }
 
-void Camera_set_brightness(BRIGHTNESS level);
-void Camera_set_special_effect(SPECIAL_EFFECTS effect);
-void Camera_set_sharpness_type(SHARPNESS_TYPE sharpness);
+/**
+ * Set the camera's brightness offset
+ * @param level the brightness level offset
+ */
+void Camera_set_brightness(BRIGHTNESS level)
+{
+	wrSensorReg16_8(0x5001, 0xff);
 
-void Camera_reset_firmware();
-void Camera_single_capture();
-void Camera_start_capture();
+	switch(level)
+	{
+		case BRIGHTNESS_4:
+		case BRIGHTNESS_NEG_4:
+			wrSensorReg16_8(0x5589, 0x40);
+			break;
+		case BRIGHTNESS_3:
+		case BRIGHTNESS_NEG_3:
+			wrSensorReg16_8(0x5589, 0x30);
+			break;
+		case BRIGHTNESS_2:
+		case BRIGHTNESS_NEG_2:
+			wrSensorReg16_8(0x5589, 0x20);
+			break;
+		case BRIGHTNESS_1:
+		case BRIGHTNESS_NEG_1:
+			wrSensorReg16_8(0x5589, 0x10);
+			break;
+		case BRIGHTNESS_0:
+		default:
+			wrSensorReg16_8(0x5589, 0x00);
+			break;
+	}
+
+	wrSensorReg16_8(0x5580, 0x04);
+
+	switch(level)
+	{
+		case BRIGHTNESS_NEG_4:
+		case BRIGHTNESS_NEG_3:
+		case BRIGHTNESS_NEG_2:
+		case BRIGHTNESS_NEG_1:
+			wrSensorReg16_8(0x558a, 0x08);
+			break;
+
+		case BRIGHTNESS_4:
+		case BRIGHTNESS_3:
+		case BRIGHTNESS_2:
+		case BRIGHTNESS_1:
+		case BRIGHTNESS_0:
+		default:
+			wrSensorReg16_8(0x558a, 0x00);
+			break;
+	}
+}
+
+/**
+ * Add a special effect to the camera output
+ * @param effect the special effect to add
+ */
+void Camera_set_special_effect(SPECIAL_EFFECTS effect)
+{
+	switch(effect)
+	{
+		case EFFECT_BLUISH:
+			wrSensorReg16_8(0x5001, 0xff);
+			wrSensorReg16_8(0x5580, 0x18);
+			wrSensorReg16_8(0x5585, 0xa0);
+			wrSensorReg16_8(0x5586, 0x40);
+			break;
+		case EFFECT_GREENISH:
+			wrSensorReg16_8(0x5001, 0xff);
+			wrSensorReg16_8(0x5580, 0x18);
+			wrSensorReg16_8(0x5585, 0x60);
+			wrSensorReg16_8(0x5586, 0x60);
+			break;
+		case EFFECT_REDDISH:
+			wrSensorReg16_8(0x5001, 0xff);
+			wrSensorReg16_8(0x5580, 0x18);
+			wrSensorReg16_8(0x5585, 0x80);
+			wrSensorReg16_8(0x5586, 0xc0);
+			break;
+		case EFFECT_BW:
+			wrSensorReg16_8(0x5001, 0xff);
+			wrSensorReg16_8(0x5580, 0x18);
+			wrSensorReg16_8(0x5585, 0x80);
+			wrSensorReg16_8(0x5586, 0x80);
+			break;
+		case EFFECT_NEGATIVE:
+			wrSensorReg16_8(0x5001, 0xff);
+			wrSensorReg16_8(0x5580, 0x40);
+			break;
+		case EFFECT_SEPIA:
+			wrSensorReg16_8(0x5001, 0xff);
+			wrSensorReg16_8(0x5580, 0x18);
+			wrSensorReg16_8(0x5585, 0x40);
+			wrSensorReg16_8(0x5586, 0xa0);
+			break;
+		case EFFECT_NORMAL:
+			wrSensorReg16_8(0x5001, 0x7f);
+			wrSensorReg16_8(0x5580, 0x00);
+			break;
+	}
+}
+
+/**
+ * Set the sharpness algorithm of the camera
+ * @param sharpness the manual/automatic sharpness method
+ */
+void Camera_set_sharpness_type(SHARPNESS_TYPE sharpness)
+{
+	switch(sharpness)
+	{
+		case SHARP_AUTO_DEFAULT:
+			wrSensorReg16_8(0x530A, 0x00);
+			wrSensorReg16_8(0x530c, 0x0);
+			wrSensorReg16_8(0x530d, 0xc);
+			wrSensorReg16_8(0x5312, 0x40);
+			break;
+		case SHARP_AUTO_1:
+			wrSensorReg16_8(0x530A, 0x00);
+			wrSensorReg16_8(0x530c, 0x4);
+			wrSensorReg16_8(0x530d, 0x18);
+			wrSensorReg16_8(0x5312, 0x20);
+			break;
+		case SHARP_AUTO_2:
+			wrSensorReg16_8(0x530A, 0x00);
+			wrSensorReg16_8(0x530c, 0x8);
+			wrSensorReg16_8(0x530d, 0x30);
+			wrSensorReg16_8(0x5312, 0x10);
+			break;
+		case SHARP_MANUAL_OFF:
+			wrSensorReg16_8(0x530A, 0x08);
+			wrSensorReg16_8(0x531e, 0x00);
+			wrSensorReg16_8(0x531f, 0x00);
+			break;
+		case SHARP_MANUAL_1:
+			wrSensorReg16_8(0x530A, 0x08);
+			wrSensorReg16_8(0x531e, 0x04);
+			wrSensorReg16_8(0x531f, 0x04);
+			break;
+		case SHARP_MANUAL_2:
+			wrSensorReg16_8(0x530A, 0x08);
+			wrSensorReg16_8(0x531e, 0x08);
+			wrSensorReg16_8(0x531f, 0x08);
+			break;
+		case SHARP_MANUAL_3:
+			wrSensorReg16_8(0x530A, 0x08);
+			wrSensorReg16_8(0x531e, 0x0c);
+			wrSensorReg16_8(0x531f, 0x0c);
+			break;
+		case SHARP_MANUAL_4:
+			wrSensorReg16_8(0x530A, 0x08);
+			wrSensorReg16_8(0x531e, 0x0f);
+			wrSensorReg16_8(0x531f, 0x0f);
+			break;
+		case SHARP_MANUAL_5:
+			wrSensorReg16_8(0x530A, 0x08);
+			wrSensorReg16_8(0x531e, 0x1f);
+			wrSensorReg16_8(0x531f, 0x1f);
+			break;
+	}
+}
+
+/**
+ * Reset camera settings to default
+ */
+void Camera_reset_firmware()
+{
+	writeRegister(0x07, 0x80);
+	Timer_delay_ms(100);
+	writeRegister(0x07, 0x00);
+	Timer_delay_ms(100);
+	writeRegister(ARDUCHIP_FRAMES, 0x00);
+	setBit(ARDUCHIP_TIM, VSYNC_LEVEL_MASK);
+}
+
+/**
+ * Capture a single image into the read buffer
+ */
+void Camera_single_capture()
+{
+	flushFIFO();
+	Camera_start_capture();
+
+	while(!getBit(ARDUCHIP_TRIG, CAP_DONE_MASK)) { Timer_delay_us(5); }
+
+	int count				 = readFIFOLength();
+	current_jpeg_buffer_size = count;
+	int i					 = 0;
+
+	setFIFOBurst();
+
+	while((count--) > 0) { read_buffer[i++] = SPI_transfer(0); }
+}
+
+/**
+ * Start capturing data on the camera
+ */
+void Camera_start_capture() { writeRegister(ARDUCHIP_FIFO, FIFO_START_MASK); }
 
 /**
  * Clear the flag marking new data in the camera FIFO queue
